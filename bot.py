@@ -16,6 +16,8 @@ sys.setdefaultencoding('utf-8')
 logging.basicConfig(filename='logs/debug.log', level=logging.INFO,
                     format="%(asctime)s %(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S %p")
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib").setLevel(logging.WARNING)
 
 
 bot = telebot.TeleBot(BotSettings.TOKEN)
