@@ -3,10 +3,11 @@ import logging
 import sys
 import time
 
+import botan
 import telebot
 from telebot import types
 
-from config import BotSettings, ResourcesSettings, RssSettings, DBSettings
+from config import BotSettings, ResourcesSettings, RssSettings, DBSettings, APISettings
 from getters import RssFinder, RssParser, DBGetter, texts, GooGl
 
 reload(sys)
@@ -23,6 +24,7 @@ bot = telebot.TeleBot(BotSettings.TOKEN)
 @bot.message_handler(commands=["menu"])
 def menu_command(message):
     main_menu_worker(message)
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 @bot.message_handler(commands=["subscriptions"])
@@ -112,6 +114,7 @@ def donate(message):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=texts(user).DONATE, url='http://www.donationalerts.ru/r/feedler'))
     bot.send_message(user, text=texts(user).IF_YOUR_LIKE, reply_markup=markup)
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == texts(message.chat.id).RATE_BOT)
@@ -121,6 +124,7 @@ def rate(message):
     markup.add(types.InlineKeyboardButton(text=texts(user).RATE_BOT,
                                           url='https://telegram.me/storebot?start=Feedler_bot'))
     bot.send_message(user, text=texts(user).RATE_ME, reply_markup=markup)
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 @bot.message_handler(content_types=['text'],
@@ -169,6 +173,7 @@ def feedback_menu(message):
     markup.row(texts(user).BACK_TO_MAIN_MENU)
     msg = bot.send_message(message.chat.id, text=texts(user).ENTER_FEEDBACK, reply_markup=markup)
     bot.register_next_step_handler(msg, process_feedback)
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 def process_feedback(message):
@@ -190,6 +195,7 @@ def enter_your_site_menu(message):
     markup.row(texts(user).BACK_TO_MAIN_MENU)
     msg = bot.send_message(message.chat.id, text=texts(user).ENTER_SITE_OR_RSS, reply_markup=markup)
     bot.register_next_step_handler(msg, process_url)
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 paginate_rss = {}
@@ -262,6 +268,7 @@ def process_url(message):
             logging.error(error)
             bot.send_message(message.chat.id, text=texts(user).REQUESTED_SITE_RETURN_ERROR % error,
                              parse_mode="Markdown")
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, url)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] in [">>", "<<"])
@@ -425,6 +432,7 @@ def subscriptions_menu(message):
     else:
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         bot.send_message(message.chat.id, text=texts(user).YOU_HAVE_NO_SUBSCRIPTIONS, reply_markup=keyboard)
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 @bot.message_handler(content_types=['text'],
@@ -560,6 +568,7 @@ def top_countries(country, action, handler_type):
     elif action == "edit_message":
         bot.edit_message_text(chat_id=handler_type.message.chat.id, message_id=handler_type.message.message_id,
                               text=texts(handler_type.message.chat.id).SELECT_SITE, reply_markup=markup)
+    botan.track(APISettings.BOTAN_TOKEN, None, country)
 
 
 def top_vk_groups(action, handler_type):
@@ -576,6 +585,7 @@ def top_vk_groups(action, handler_type):
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == texts(message.chat.id).TOP_PUBLICS)
 def vk_top(message):
     top_vk_groups(action="send_message", handler_type=message)
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == texts(message.chat.id).RUSSIA)
@@ -635,6 +645,7 @@ def top_site_menu(call):
         bot.send_message(chat_id=call.message.chat.id,
                          text=texts(user).YOU_CAN_UNSUBSCRIBE_FROM % call.data.split('_')[0],
                          reply_markup=keyboard)
+    botan.track(APISettings.BOTAN_TOKEN, call.message.chat.id, None, call.data)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] in RssSettings.RESOURCES_DOMAINS)
@@ -699,6 +710,7 @@ def get_memes_by_top_vk_groups(call):
         if x[1] == "gifs_with_caption":
             bot.send_document(call.message.chat.id, data=x[2], caption=x[0],
                               disable_notification=True, reply_markup=markup)
+    botan.track(APISettings.BOTAN_TOKEN, call.message.chat.id, None, call.data)
 
 while True:
 
