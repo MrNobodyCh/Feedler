@@ -164,6 +164,7 @@ def vk_groups_menu(message):
     markup.row(texts(user).TOP_PUBLICS)
     markup.row(texts(user).BACK_TO_MAIN_MENU)
     bot.send_message(message.chat.id, text=texts(user).MAKE_YOUR_CHOICE, reply_markup=markup)
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == texts(message.chat.id).FEEDBACK)
