@@ -17,7 +17,10 @@ class GooGl:
         payload = {'longUrl': long_link}
         headers = {'content-type': 'application/json'}
         r = requests.post(post_url, data=json.dumps(payload), headers=headers)
-        return r.json()["id"]
+        try:
+            return r.json()["id"]
+        except KeyError:
+            return long_link
 
 
 class RssParser(object):
