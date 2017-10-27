@@ -174,13 +174,22 @@ class VKGrabber(object):
                 logging.info("Starting uploading new photos")
                 for photo in photos:
                     logging.info("Uploading new photo to the Telegram servers: %s" % photo[0])
-                    uploading_photo = async_bot.send_photo(chat_id='-1001126259530',
-                                                           photo=self.convert_photo("%s" % photo[0]))
-                    result = uploading_photo.wait()
-                    file_id = result.photo[-1].file_id
-                    DBGetter(DBSettings.HOST).insert(
-                        "UPDATE vk_groups_posts SET file_id = '%s' WHERE doc_url = '%s'" % (file_id, photo[0]))
-                    logging.info("Inserting to DB new photo with file_id: %s" % file_id)
+                    try:
+                        uploading_photo = async_bot.send_photo(chat_id='-1001126259530',
+                                                               photo=self.convert_photo("%s" % photo[0]))
+                        result = uploading_photo.wait()
+                        file_id = result.photo[-1].file_id
+                        DBGetter(DBSettings.HOST).insert(
+                            "UPDATE vk_groups_posts SET file_id = '%s' WHERE doc_url = '%s'" % (file_id, photo[0]))
+                        logging.info("Inserting to DB new photo with file_id: %s" % file_id)
+                    except Exception:
+                        uploading_photo = async_bot.send_photo(chat_id='-1001126259530',
+                                                               photo="%s" % photo[0])
+                        result = uploading_photo.wait()
+                        file_id = result.photo[-1].file_id
+                        DBGetter(DBSettings.HOST).insert(
+                            "UPDATE vk_groups_posts SET file_id = '%s' WHERE doc_url = '%s'" % (file_id, photo[0]))
+                        logging.info("Inserting to DB new photo with file_id: %s" % file_id)
                 logging.info("Count of the new photos uploaded: %s" % len(photos))
 
             # upload gifs
