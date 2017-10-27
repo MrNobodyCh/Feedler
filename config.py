@@ -131,7 +131,7 @@ class ResourcesSettings(object):
                     "Спорт_%s" % self.resource: "sport",
                     "Происшествия_%s" % self.resource: "incident",
                     "Культура_%s" % self.resource: "culture",
-                    "Технологии и Наука_%s" % self.resource: "computers",
+                    "Технологии_%s" % self.resource: "computers",
                     "Авто_%s" % self.resource: "auto"}
 
         if self.resource == "rambler.ru":
@@ -156,8 +156,8 @@ class ResourcesSettings(object):
 
         if self.resource == "lenta.ru":
             return {"Новости_%s" % self.resource: "news",
-                    "Самые свежие и самые важные новости_%s" % self.resource: "top7",
-                    "Главные новости за последние сутки_%s" % self.resource: "last24"}
+                    "Самые важные_%s" % self.resource: "top7",
+                    "Главное за сутки_%s" % self.resource: "last24"}
 
         if self.resource == "charter97.org":
             return {"Все Новости_%s" % self.resource: "all",
@@ -195,12 +195,12 @@ class ResourcesSettings(object):
 
         if self.resource == "korrespondent.net":
             return {"Все новости_%s" % self.resource: "all_news",
-                    "Новости Киева_%s" % self.resource: "kyiv",
+                    "Киев_%s" % self.resource: "kyiv",
                     "Картинка дня_%s" % self.resource: "mainbyday",
-                    "Новости бизнеса_%s" % self.resource: "business",
+                    "Бизнес_%s" % self.resource: "business",
                     "Шоу-Бизнес_%s" % self.resource: "showbiz",
-                    "Новости Украины_%s" % self.resource: "ukraine",
-                    "Наука и Медицина_%s" % self.resource: "tech",
+                    "Украина_%s" % self.resource: "ukraine",
+                    "Наука_%s" % self.resource: "tech",
                     "Новости Спорта_%s" % self.resource: "sport",
                     "Новости Мира_%s" % self.resource: "world",
                     "Lifestyle&Fashion_%s" % self.resource: "lifestyle"}
@@ -219,7 +219,6 @@ class ResourcesSettings(object):
                     "Фоторепортажи_%s" % self.resource: "photonews_ru",
                     "Видео_%s" % self.resource: "videonews_ru",
                     "События_%s" % self.resource: "events_ru",
-                    "Фотошопы политиков_%s" % self.resource: "photoshops_ru",
                     "Анектоды_%s" % self.resource: "jokes_ru",
                     "Форум_%s" % self.resource: "forum_ru"}
 
