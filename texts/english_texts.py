@@ -62,5 +62,6 @@ REQUESTED_SITE_RETURN_ERROR = "The requested site returned an error: *«%s»*"
 HERE_IS_LATEST_NEWS = u"\U0001F4EC Here is the latest news from feed %s:"
 ALL_FEEDS_UPDATED = u"\u2139 All feeds have been updated \u2139"
 IF_YOUR_LIKE = u"If you really enjoy this bot, consider a donation " \
-               u"to support development, maintenance and servers costs. \n\n \u2139 55 RUB ≈ 1$"
+               u"to support development, maintenance and servers costs. \n\n \u2139 55 RUB ≈ 1$\n" \
+               u"Also we are looking forward to your feedback: /feedback"
 RATE_ME = u"If you like me, give me some \u2b50\u2b50\u2b50\u2b50\u2b50 here:"
