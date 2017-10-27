@@ -144,8 +144,8 @@ def main_menu_worker(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row(texts(user).TOP_PORTALS, texts(user).ENTER_YOUR_SITE)
     markup.row(texts(user).VK, texts(user).SUBSCRIPTIONS)
-    markup.row(texts(user).FEEDBACK, texts(user).CHANGE_LANGUAGE)
     markup.row(texts(user).DONATE, texts(user).RATE_BOT)
+    markup.row(texts(user).FEEDBACK, texts(user).CHANGE_LANGUAGE)
     bot.send_message(message.chat.id, text=texts(user).MAKE_YOUR_CHOICE, reply_markup=markup)
 
 
