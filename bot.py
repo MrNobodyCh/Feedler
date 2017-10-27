@@ -271,7 +271,7 @@ def process_url(message):
             logging.error(error)
             bot.send_message(message.chat.id, text=texts(user).REQUESTED_SITE_RETURN_ERROR % error,
                              parse_mode="Markdown")
-    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, url)
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, "Поиск RSS: %s" % url)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] in [">>", "<<"])
@@ -526,6 +526,8 @@ def subscribe_unsubscribe_user(message):
         DBGetter(DBSettings.HOST).insert("DELETE FROM users_subscriptions WHERE user_id = %s "
                                          "AND subscription = '%s'" % (user, resource_name))
         bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_UNSUBSCRIBED % resource_name)
+
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 @bot.message_handler(content_types=['text'],
