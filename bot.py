@@ -82,6 +82,7 @@ def language_menu(message):
                    types.InlineKeyboardButton(u"\U0001F1EC\U0001F1E7 English", callback_data="english_new"))
         bot.send_message(message.chat.id, text=u"Hi, %s! \u270b \nSelect your language:"
                                                % message.chat.first_name, reply_markup=markup)
+        botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, "New User!")
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] in ["english", "russian"])
