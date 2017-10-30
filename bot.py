@@ -111,12 +111,21 @@ def main_menu(call):
     main_menu_worker(call.message)
 
 
+@bot.callback_query_handler(func=lambda call: call.data == "supported")
+def supported_user(call):
+    user = call.message.chat.id
+    DBGetter(DBSettings.HOST).insert("UPDATE user_language SET supported = TRUE "
+                                     "WHERE user_id = %s" % call.message.chat.id)
+    bot.send_message(call.message.chat.id, text=texts(user).GOT_IT)
+    botan.track(APISettings.BOTAN_TOKEN, call.message.chat.id, None, call.data)
+
+
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == texts(message.chat.id).DONATE)
 def donate(message):
     user = message.chat.id
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=texts(user).DONATE, url='http://www.donationalerts.ru/r/feedler'))
-    bot.send_message(user, text=texts(user).IF_YOUR_LIKE, reply_markup=markup)
+    bot.send_message(user, text=texts(user).IF_YOUR_LIKE, reply_markup=markup, parse_mode="Markdown")
     botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
