@@ -2,6 +2,7 @@
 import logging
 import sys
 
+import requests
 import telebot
 from telebot import types
 
@@ -18,16 +19,21 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 
 def reminder():
-    async_bot = telebot.AsyncTeleBot(BotSettings.TOKEN)
-    users = DBGetter(DBSettings.HOST).get("SELECT user_id FROM user_language WHERE supported = False")
-    for x in users:
-        user_id = x[0]
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(text=texts(user_id).RATE_BOT,
-                                              url='https://telegram.me/storebot?start=Feedler_bot'),
-                   types.InlineKeyboardButton(text=texts(user_id).DONATE, url='http://www.donationalerts.ru/r/feedler'))
-        markup.add(types.InlineKeyboardButton(texts(user_id).ALREADY_SUPPORTED, callback_data="supported"))
-        async_bot.send_message(user_id, text=texts(user_id).REMINDER, reply_markup=markup, parse_mode="Markdown")
-        logging.info("Send reminder for user: %s" % user_id)
+    if requests.get("http://storebot.me").status_code == 200:
+        async_bot = telebot.AsyncTeleBot(BotSettings.TOKEN)
+        users = DBGetter(DBSettings.HOST).get("SELECT user_id FROM user_language WHERE supported = FALSE")
+        for x in users:
+            user_id = x[0]
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton(text=texts(user_id).RATE_BOT,
+                                                  url='https://telegram.me/storebot?start=Feedler_bot'),
+                       types.InlineKeyboardButton(text=texts(user_id).DONATE,
+                                                  url='http://www.donationalerts.ru/r/feedler'))
+            markup.add(types.InlineKeyboardButton(texts(user_id).ALREADY_SUPPORTED, callback_data="supported"))
+            async_bot.send_message(user_id, text=texts(user_id).REMINDER, reply_markup=markup, parse_mode="Markdown")
+            logging.info("Send reminder for user: %s" % user_id)
+    else:
+        logging.info("Storebot.me is currently unavailable")
+
 
 reminder()
