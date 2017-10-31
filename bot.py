@@ -231,7 +231,7 @@ def chunkIt(seq, num):
 
 def process_url(message):
     user = message.chat.id
-    url = message.text
+    url = message.text.lower()
     if url in ResourcesSettings.RESOURCES and url != texts(user).BACK_TO_MAIN_MENU:
         bot.send_message(message.chat.id, text=texts(user).REQUESTED_SITE_PRESENTS)
         country = ResourcesSettings(url).get_country_by_resource()
