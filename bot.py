@@ -232,13 +232,13 @@ def chunkIt(seq, num):
 def process_url(message):
     user = message.chat.id
     url = message.text.lower()
-    if url in ResourcesSettings.RESOURCES and url != texts(user).BACK_TO_MAIN_MENU:
+    if url in ResourcesSettings.RESOURCES and url != texts(user).BACK_TO_MAIN_MENU.lower():
         bot.send_message(message.chat.id, text=texts(user).REQUESTED_SITE_PRESENTS)
         country = ResourcesSettings(url).get_country_by_resource()
         top_countries(country=country, action="send_message", handler_type=message)
     elif url in BotSettings.COMMANDS:
         pass
-    elif url not in ResourcesSettings.RESOURCES and url != texts(user).BACK_TO_MAIN_MENU:
+    elif url not in ResourcesSettings.RESOURCES and url != texts(user).BACK_TO_MAIN_MENU.lower():
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         bot.send_message(message.chat.id, text=texts(user).SEARCHING, reply_markup=keyboard)
         try:
