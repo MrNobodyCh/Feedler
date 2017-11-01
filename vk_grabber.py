@@ -4,6 +4,7 @@ import sys
 import urllib
 
 import telebot
+from telebot import types
 import vk_api
 import logging
 
@@ -168,23 +169,29 @@ class VKGrabber(object):
         async_bot = telebot.AsyncTeleBot(BotSettings.TOKEN)
         # upload photos
         try:
-            photos = DBGetter(DBSettings.HOST).get("SELECT doc_url FROM vk_groups_posts WHERE type IN "
-                                                   "('photo_no_caption', 'photo_with_caption') AND file_id IS NULL")
+            photos = DBGetter(DBSettings.HOST).get("SELECT doc_url, caption, group_name FROM vk_groups_posts "
+                                                   "WHERE type IN ('photo_no_caption', 'photo_with_caption') "
+                                                   "AND file_id IS NULL")
             if len(photos) > 0:
                 logging.info("Starting uploading new photos")
                 for photo in photos:
                     logging.info("Uploading new photo to the Telegram servers: %s" % photo[0])
+                    if photo[1] is None:
+                        caption = "#%s" % photo[2].replace(" ", "")
+                    else:
+                        caption = "%s\n#%s" % (photo[1], photo[2].replace(" ", ""))
                     try:
-                        uploading_photo = async_bot.send_photo(chat_id='-1001126259530',
-                                                               photo=self.convert_photo("%s" % photo[0]))
+                        uploading_photo = async_bot.send_photo(chat_id='@FunnyMemesVK',
+                                                               photo=self.convert_photo("%s" % photo[0]),
+                                                               caption=caption)
                         result = uploading_photo.wait()
                         file_id = result.photo[-1].file_id
                         DBGetter(DBSettings.HOST).insert(
                             "UPDATE vk_groups_posts SET file_id = '%s' WHERE doc_url = '%s'" % (file_id, photo[0]))
                         logging.info("Inserting to DB new photo with file_id: %s" % file_id)
                     except Exception:
-                        uploading_photo = async_bot.send_photo(chat_id='-1001126259530',
-                                                               photo="%s" % photo[0])
+                        uploading_photo = async_bot.send_photo(chat_id='@FunnyMemesVK',
+                                                               photo="%s" % photo[0], caption=caption)
                         result = uploading_photo.wait()
                         file_id = result.photo[-1].file_id
                         DBGetter(DBSettings.HOST).insert(
@@ -193,14 +200,19 @@ class VKGrabber(object):
                 logging.info("Count of the new photos uploaded: %s" % len(photos))
 
             # upload gifs
-            gifs = DBGetter(DBSettings.HOST).get("SELECT doc_url FROM vk_groups_posts WHERE type IN "
-                                                 "('gifs_no_caption', 'gifs_with_caption') AND file_id IS NULL")
+            gifs = DBGetter(DBSettings.HOST).get("SELECT doc_url, caption, group_name FROM vk_groups_posts "
+                                                 "WHERE type IN ('gifs_no_caption', 'gifs_with_caption') "
+                                                 "AND file_id IS NULL")
             if len(gifs) > 0:
                 logging.info("Starting uploading new gifs")
                 for gif in gifs:
                     logging.info("Uploading new gif to the Telegram servers: %s" % gif[0])
-                    uploading_gif = async_bot.send_document(chat_id='-1001126259530',
-                                                            data=self.convert_gif("%s" % gif[0]))
+                    if gif[1] is None:
+                        caption = "#%s" % gif[2].replace(" ", "")
+                    else:
+                        caption = "%s\n#%s" % (gif[1], gif[2].replace(" ", ""))
+                    uploading_gif = async_bot.send_document(chat_id='@FunnyMemesVK',
+                                                            data=self.convert_gif("%s" % gif[0]), caption=caption)
                     result = uploading_gif.wait()
                     file_id = result.document.file_id
                     DBGetter(DBSettings.HOST).insert("UPDATE vk_groups_posts SET file_id = '%s' "
@@ -209,6 +221,20 @@ class VKGrabber(object):
                 logging.info("Count of the new gifs uploaded: %s" % len(gifs))
         except Exception as e:
             logging.error(e)
+
+        # send reminder about Feedler Bot
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton(text=u"\U0001F916 Feedler Bot", url='https://t.me/Feedler_bot'))
+        markup.add(types.InlineKeyboardButton(text=u"\u2b50\u2b50\u2b50\u2b50\u2b50 Rate Channel",
+                                              url='https://telegram.me/tchannelsbot?start=funnymemesvk'))
+        async_bot.send_message(chat_id="@FunnyMemesVK", text=u"\U0001F1F7\U0001F1FA Все мемы постятся в канал ботом "
+                                                             u"по имени *Feedler*. Он умеет еще много чего, советуем"
+                                                             u" попробовать!\n"
+                                                             u"\U0001F1EC\U0001F1E7 All memes are posted to the "
+                                                             u"channel by a bot named *Feedler*. He knows a lot more, "
+                                                             u"we advise you to try it!", reply_markup=markup,
+                               parse_mode="Markdown")
+
 
 vk_group_ids = DBGetter(DBSettings.HOST).get("SELECT group_id FROM vk_groups_names")
 
