@@ -128,7 +128,7 @@ def send_latest_news_to_channel():
                                text=message_text % (news[0].replace(".", "_"), news[2],
                                                     GooGl().short_link(news[3])), disable_notification=True,
                                reply_markup=markup)
-
+    time.sleep(0.1)
     # send reminder about Feedler Bot into the channel
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=u"\U0001F916 Feedler Bot", url='https://t.me/Feedler_bot'))
