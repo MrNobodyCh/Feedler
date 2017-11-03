@@ -38,24 +38,6 @@ class NewsGrabber(object):
                 DBGetter(DBSettings.HOST).insert(sql, (portal_name, self.rss_url, news[0].replace("&nbsp;", " "),
                                                        GooGl().short_link(news[1]), news[1], int(news[2])))
                 logging.info("Inserting new post with url: %s" % news[1])
-                if portal_name in ResourcesSettings.RESOURCES:
-                    if ResourcesSettings(portal_name).get_country_by_resource() == "belarus":
-                        message_text = u"\U0001F1E7\U0001F1FE #%s\n%s\n%s"
-                    elif ResourcesSettings(portal_name).get_country_by_resource() == "russia":
-                        message_text = u"\U0001F1F7\U0001F1FA #%s\n%s\n%s"
-                    elif ResourcesSettings(portal_name).get_country_by_resource() == "ukraine":
-                        message_text = u"\U0001F1FA\U0001F1E6 #%s\n%s\n%s"
-                    elif ResourcesSettings(portal_name).get_country_by_resource() == "world":
-                        message_text = u"\U0001F30E #%s\n%s\n%s"
-                    else:
-                        message_text = "#%s\n%s\n%s"
-                    # send news to the channel
-                    markup = types.InlineKeyboardMarkup()
-                    markup.add(types.InlineKeyboardButton(text=u"\U0001F4F0 Read More", url=news[1]))
-                    async_bot.send_message(chat_id="@the_latestnews",
-                                           text=message_text % (portal_name.replace(".", "_"), news[0],
-                                                                GooGl().short_link(news[1])), disable_notification=True,
-                                           reply_markup=markup)
             if check_exists > 0:
                 pass
         # удаляем из БД посты (по каждому RSS фиду кол-во не должно быть > 10)
@@ -124,7 +106,29 @@ def get_news_by_subscriptions(user):
                                              (int(upd_latest_date), key, user_id))
 
 
-def send_reminder():
+def send_latest_news_to_channel():
+    channel_news = DBGetter(DBSettings.HOST).get("SELECT DISTINCT ON (portal_name) * FROM news_portals "
+                                                 "WHERE portal_name in (%s) ORDER BY portal_name, publish_date DESC;"
+                                                 % str(ResourcesSettings.RESOURCES)[1:-1])
+    for news in channel_news:
+        if ResourcesSettings(news[0]).get_country_by_resource() == "belarus":
+            message_text = u"\U0001F1E7\U0001F1FE #%s\n%s\n%s"
+        elif ResourcesSettings(news[0]).get_country_by_resource() == "russia":
+            message_text = u"\U0001F1F7\U0001F1FA #%s\n%s\n%s"
+        elif ResourcesSettings(news[0]).get_country_by_resource() == "ukraine":
+            message_text = u"\U0001F1FA\U0001F1E6 #%s\n%s\n%s"
+        elif ResourcesSettings(news[0]).get_country_by_resource() == "world":
+            message_text = u"\U0001F30E #%s\n%s\n%s"
+        else:
+            message_text = "#%s\n%s\n%s"
+        # send news to the channel
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton(text=u"\U0001F4F0 Read More", url=news[4]))
+        async_bot.send_message(chat_id="@the_latestnews",
+                               text=message_text % (news[0].replace(".", "_"), news[2],
+                                                    GooGl().short_link(news[3])), disable_notification=True,
+                               reply_markup=markup)
+
     # send reminder about Feedler Bot into the channel
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=u"\U0001F916 Feedler Bot", url='https://t.me/Feedler_bot'))
@@ -154,4 +158,4 @@ for resource in ResourcesSettings.RESOURCES:
     for a, b in ResourcesSettings(resource).get_categories().iteritems():
         NewsGrabber(RssSettings("http://" + resource).get_full_rss_url() % b).get_news(resource)
 
-send_reminder()
+send_latest_news_to_channel()
