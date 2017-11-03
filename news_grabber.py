@@ -3,6 +3,7 @@ import logging
 import sys
 
 import telebot
+from telebot import types
 import time
 
 from getters import DBGetter, RssParser, GooGl, texts
@@ -15,6 +16,8 @@ logging.basicConfig(filename='logs/news_grabber.log', level=logging.INFO,
                     format="%(asctime)s %(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S %p")
 logging.getLogger("requests").setLevel(logging.WARNING)
+
+async_bot = telebot.AsyncTeleBot(BotSettings.TOKEN)
 
 
 class NewsGrabber(object):
@@ -35,6 +38,24 @@ class NewsGrabber(object):
                 DBGetter(DBSettings.HOST).insert(sql, (portal_name, self.rss_url, news[0].replace("&nbsp;", " "),
                                                        GooGl().short_link(news[1]), news[1], int(news[2])))
                 logging.info("Inserting new post with url: %s" % news[1])
+                if portal_name in ResourcesSettings.RESOURCES:
+                    if ResourcesSettings(portal_name).get_country_by_resource() == "belarus":
+                        message_text = u"\U0001F1E7\U0001F1FE #%s\n%s\n%s"
+                    elif ResourcesSettings(portal_name).get_country_by_resource() == "russia":
+                        message_text = u"\U0001F1F7\U0001F1FA #%s\n%s\n%s"
+                    elif ResourcesSettings(portal_name).get_country_by_resource() == "ukraine":
+                        message_text = u"\U0001F1FA\U0001F1E6 #%s\n%s\n%s"
+                    elif ResourcesSettings(portal_name).get_country_by_resource() == "world":
+                        message_text = u"\U0001F30E #%s\n%s\n%s"
+                    else:
+                        message_text = "#%s\n%s\n%s"
+                    # send news to the channel
+                    markup = types.InlineKeyboardMarkup()
+                    markup.add(types.InlineKeyboardButton(text=u"\U0001F4F0 Read More", url=news[1]))
+                    async_bot.send_message(chat_id="@the_latestnews",
+                                           text=message_text % (portal_name.replace(".", "_"), news[0],
+                                                                GooGl().short_link(news[1])), disable_notification=True,
+                                           reply_markup=markup)
             if check_exists > 0:
                 pass
         # удаляем из БД посты (по каждому RSS фиду кол-во не должно быть > 10)
@@ -49,7 +70,6 @@ class NewsGrabber(object):
 
 
 def get_news_by_subscriptions(user):
-    async_bot = telebot.AsyncTeleBot(BotSettings.TOKEN)
     users = user
     for x in users:
         user_id = x[0]
@@ -104,6 +124,19 @@ def get_news_by_subscriptions(user):
                                              (int(upd_latest_date), key, user_id))
 
 
+def send_reminder():
+    # send reminder about Feedler Bot into the channel
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=u"\U0001F916 Feedler Bot", url='https://t.me/Feedler_bot'))
+    async_bot.send_message(chat_id="@the_latestnews",
+                           text=u"\U0001F1F7\U0001F1FA Все новости постятся в канал ботом "
+                                u"по имени *Feedler*. Он умеет еще много чего, советуем"
+                                u" попробовать!\n"
+                                u"\U0001F1EC\U0001F1E7 All news are posted to the "
+                                u"channel by a bot named *Feedler*. He knows a lot more, "
+                                u"we advise you to try it!", reply_markup=markup, parse_mode="Markdown")
+
+
 # обновляем ресурсы по которым есть подписки
 for resource in DBGetter(DBSettings.HOST).get("SELECT DISTINCT subscription FROM users_subscriptions"):
     if resource[0] in ResourcesSettings.RESOURCES:
@@ -120,3 +153,5 @@ get_news_by_subscriptions(DBGetter(DBSettings.HOST).get("SELECT DISTINCT user_id
 for resource in ResourcesSettings.RESOURCES:
     for a, b in ResourcesSettings(resource).get_categories().iteritems():
         NewsGrabber(RssSettings("http://" + resource).get_full_rss_url() % b).get_news(resource)
+
+send_reminder()

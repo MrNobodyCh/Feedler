@@ -19,10 +19,10 @@ class ResourcesSettings(object):
     def __init__(self, resource):
         self.resource = resource
 
-    RESOURCES = ["tut.by", "onliner.by", "news.mail.ru", "news.yandex.ru", "rambler.ru",
-                 "rbc.ru", "lenta.ru", "charter97.org", "udf.by", "belta.by", "korrespondent.net",
-                 "obozrevatel.com", "censor.net.ua", "telegraf.com.ua", "edition.cnn.com", "nytimes.com",
-                 "theguardian.com", "washingtonpost.com", "bbc.com", "segodnya.ua"]
+    RESOURCES = ["tut.by", "onliner.by", "lenta.ru", "charter97.org", "udf.by", "belta.by", "edition.cnn.com",
+                 "nytimes.com", "theguardian.com", "washingtonpost.com", "bbc.com", "korrespondent.net",
+                 "obozrevatel.com", "censor.net.ua", "telegraf.com.ua", "segodnya.ua", "news.mail.ru",
+                 "news.yandex.ru", "rambler.ru", "rbc.ru"]
 
     TOP_COUNTRIES = ["russia", "belarus", "ukraine", "world"]
 
