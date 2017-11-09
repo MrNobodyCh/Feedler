@@ -155,7 +155,10 @@ get_news_by_subscriptions(DBGetter(DBSettings.HOST).get("SELECT DISTINCT user_id
 
 # обновляем ресурсы из раздела Топ-5
 for resource in ResourcesSettings.RESOURCES:
-    for a, b in ResourcesSettings(resource).get_categories().iteritems():
-        NewsGrabber(RssSettings("http://" + resource).get_full_rss_url() % b).get_news(resource)
+    if len(DBGetter(DBSettings.HOST).get("SELECT * FROM users_subscriptions WHERE subscription = '%s'" % resource)) > 0:
+        pass
+    else:
+        for a, b in ResourcesSettings(resource).get_categories().iteritems():
+            NewsGrabber(RssSettings("http://" + resource).get_full_rss_url() % b).get_news(resource)
 
 send_latest_news_to_channel()
