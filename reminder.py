@@ -21,7 +21,7 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 def reminder():
     if requests.get("http://storebot.me").status_code == 200:
         async_bot = telebot.AsyncTeleBot(BotSettings.TOKEN)
-        users = DBGetter(DBSettings.HOST).get("SELECT user_id FROM user_language WHERE supported = FALSE")
+        users = DBGetter(DBSettings.HOST).get("SELECT user_id FROM users_language WHERE supported = FALSE")
         for x in users:
             user_id = x[0]
             markup = types.InlineKeyboardMarkup()

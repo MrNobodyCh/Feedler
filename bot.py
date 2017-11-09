@@ -69,7 +69,8 @@ def rate_command(message):
 @bot.message_handler(commands=["start"])
 def language_menu(message):
     user = message.chat.id
-    user_lang = DBGetter(DBSettings.HOST).get("SELECT language FROM user_language WHERE user_id = %s" % message.chat.id)
+    user_lang = DBGetter(DBSettings.HOST).get("SELECT language FROM users_language "
+                                              "WHERE user_id = %s" % message.chat.id)
     if len(user_lang) > 0:
         bot.send_message(message.chat.id, text=texts(user).WELCOME_BACK % message.chat.first_name)
         main_menu_worker(message)
@@ -87,22 +88,22 @@ def main_menu(call):
     user = call.message.chat.id
     # set language
     if call.data.split('_')[0] == "russian" and call.data.split('_')[1] == "new":
-        DBGetter(DBSettings.HOST).insert("INSERT INTO user_language (user_id, language) "
+        DBGetter(DBSettings.HOST).insert("INSERT INTO users_language (user_id, language) "
                                          "SELECT %s, '%s' WHERE NOT EXISTS "
-                                         "(SELECT user_id FROM user_language WHERE user_id = %s)"
+                                         "(SELECT user_id FROM users_language WHERE user_id = %s)"
                                          % (call.message.chat.id, 'russian', call.message.chat.id))
     if call.data.split('_')[0] == "english" and call.data.split('_')[1] == "new":
-        DBGetter(DBSettings.HOST).insert("INSERT INTO user_language (user_id, language) "
+        DBGetter(DBSettings.HOST).insert("INSERT INTO users_language (user_id, language) "
                                          "SELECT %s, '%s' WHERE NOT EXISTS "
-                                         "(SELECT user_id FROM user_language WHERE user_id = %s)"
+                                         "(SELECT user_id FROM users_language WHERE user_id = %s)"
                                          % (call.message.chat.id, 'english', call.message.chat.id))
     # change language
     if call.data.split('_')[0] == "russian" and call.data.split('_')[1] == "change":
-        DBGetter(DBSettings.HOST).insert("UPDATE user_language SET language = 'russian' "
+        DBGetter(DBSettings.HOST).insert("UPDATE users_language SET language = 'russian' "
                                          "WHERE user_id = %s" % call.message.chat.id)
         bot.send_message(call.message.chat.id, text=texts(user).CHANGED_LANGUAGE)
     if call.data.split('_')[0] == "english" and call.data.split('_')[1] == "change":
-        DBGetter(DBSettings.HOST).insert("UPDATE user_language SET language = 'english' "
+        DBGetter(DBSettings.HOST).insert("UPDATE users_language SET language = 'english' "
                                          "WHERE user_id = %s" % call.message.chat.id)
         bot.send_message(call.message.chat.id, text=texts(user).CHANGED_LANGUAGE)
     main_menu_worker(call.message)
@@ -111,7 +112,7 @@ def main_menu(call):
 @bot.callback_query_handler(func=lambda call: call.data == "supported")
 def supported_user(call):
     user = call.message.chat.id
-    DBGetter(DBSettings.HOST).insert("UPDATE user_language SET supported = TRUE "
+    DBGetter(DBSettings.HOST).insert("UPDATE users_language SET supported = TRUE "
                                      "WHERE user_id = %s" % call.message.chat.id)
     bot.send_message(call.message.chat.id, text=texts(user).GOT_IT)
     botan.track(APISettings.BOTAN_TOKEN, call.message.chat.id, None, call.data)
@@ -471,8 +472,8 @@ def subscribe_unsubscribe_user(message):
             except Exception:
                 latest_date = int(time.time())
             # add resource for current user
-            sql = "INSERT INTO users_subscriptions (user_id, subscription, description, latest_date) " \
-                  "VALUES (%s, %s, %s, %s)"
+            sql = "INSERT INTO users_subscriptions (user_id, subscription, " \
+                  "description, latest_date) VALUES (%s, %s, %s, %s)"
             DBGetter(DBSettings.HOST).insert(sql, (user, resource_name, description, latest_date))
             bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
             # send latest news from rss feed

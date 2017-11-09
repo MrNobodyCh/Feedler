@@ -76,7 +76,7 @@ class DBGetter(object):
 
 def texts(user):
     try:
-        language = DBGetter(DBSettings.HOST).get("SELECT language FROM user_language WHERE user_id = %s" % user)[0][0]
+        language = DBGetter(DBSettings.HOST).get("SELECT language FROM users_language WHERE user_id = %s" % user)[0][0]
     except IndexError:
         from texts import english_texts as text
         return text
