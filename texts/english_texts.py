@@ -68,8 +68,4 @@ IF_YOUR_LIKE = u"If you really enjoy this bot, consider a donation " \
 RATE_ME = u"If you like me, give me some \u2b50\u2b50\u2b50\u2b50\u2b50 here:"
 ALREADY_SUPPORTED = u"\u2705 I already supported the bot"
 GOT_IT = u"Got it! You are the best! \U0001F44D"
-REMINDER = u"Do you like our bot? — Give him some \u2b50\u2b50\u2b50\u2b50\u2b50 \n\n" \
-           u"Feedler is completely free, but powered by your love and support!\n" \
-           u"If you really enjoy this bot, consider a donation to support development, maintenance and servers costs." \
-           u"\nYou can send a donation directly to *WebMoney: Z638231318037*, " \
-           u"or follow the link below (\u2139 60 RUB ≈ 1$)"
+REMINDER = u"Do you like our bot? — Give him some \u2b50\u2b50\u2b50\u2b50\u2b50"
