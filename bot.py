@@ -189,7 +189,7 @@ def feedback_menu(message):
 
 def process_feedback(message):
     user = message.chat.id
-    feedback = (message.text[:297] + '...') if len(message.text) > 297 else message.text
+    feedback = (message.text[:2997] + '...') if len(message.text) > 2997 else message.text
     if feedback not in BotSettings.COMMANDS and feedback != texts(user).BACK_TO_MAIN_MENU:
         sql = "INSERT INTO users_feedback (user_id, feedback) VALUES (%s, %s)"
         DBGetter(DBSettings.HOST).insert(sql, (int(user), str(feedback)))

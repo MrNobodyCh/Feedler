@@ -17,7 +17,8 @@ BACK_TO_MAIN_MENU = u"\U0001F519 Back to main menu"
 CHOOSE_THE_COUNTRY = 'Choose the country:'
 TOP_PUBLICS = u"\U0001F3C6 Top-5 publics"
 FIND_PUBLIC = u"\U0001F50E Find a public"
-ENTER_FEEDBACK = "We're happy to hear any feedback from you. Just type your feedback below"
+ENTER_FEEDBACK = "We're happy to hear any feedback from you. Just type your feedback below " \
+                 "or send e-mail: feedlerbot@gmail.com"
 THANKS_FOR_FEEDBACK = "Thanks!"
 ENTER_ANOTHER_SITE = u"\U0001F50E Enter another site"
 ENTER_SITE_OR_RSS = "Enter a website or RSS feed url"
