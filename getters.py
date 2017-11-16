@@ -38,7 +38,11 @@ class RssParser(object):
             second = 0
             for i in self.feed["entries"]:
                 second += 1
-                news_feed.append([i["title"], i["link"], int(time.time()) - second])
+                try:
+                    news_feed.append([i["title"], i["link"], int(time.time()) - second])
+                # in some cases (e.g. livejournal) not have 'title' for the first item in the RSS feed
+                except KeyError:
+                    pass
         return sorted(news_feed, key=lambda x: x[2], reverse=True)[:10]
 
 
