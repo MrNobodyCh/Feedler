@@ -145,8 +145,7 @@ class ResourcesSettings(object):
                     "Спорт_%s" % self.resource: "sport",
                     "Авто_%s" % self.resource: "auto",
                     "Наука_%s" % self.resource: "science",
-                    "Технологии_%s" % self.resource: "scitech",
-                    "Стиль жизни_%s" % self.resource: "lifestyle"}
+                    "Технологии_%s" % self.resource: "scitech"}
 
         if self.resource == "rbc.ru":
             return {"Все материалы_%s" % self.resource: "news"}
