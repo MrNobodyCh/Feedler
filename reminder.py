@@ -31,7 +31,9 @@ def reminder():
                 markup.add(types.InlineKeyboardButton(text=texts(user_id).RATE_BOT,
                                                       url='https://telegram.me/storebot?start=Feedler_bot'))
                 markup.add(types.InlineKeyboardButton(texts(user_id).ALREADY_SUPPORTED, callback_data="supported"))
-                async_bot.send_message(user_id, text=texts(user_id).REMINDER, reply_markup=markup, parse_mode="Markdown")
+                msg = async_bot.send_message(user_id, text=texts(user_id).REMINDER,
+                                             reply_markup=markup, parse_mode="Markdown")
+                msg.wait()
                 logging.info("Send reminder for user: %s" % user_id)
     else:
         logging.info("Storebot.me is currently unavailable")
