@@ -142,7 +142,6 @@ class ResourcesSettings(object):
                     "Бизнес_%s" % self.resource: "business",
                     "Происшествия_%s" % self.resource: "incidents",
                     "Шоу-бизнес_%s" % self.resource: "starlife",
-                    "Спорт_%s" % self.resource: "sport",
                     "Авто_%s" % self.resource: "auto",
                     "Наука_%s" % self.resource: "science",
                     "Технологии_%s" % self.resource: "scitech"}
