@@ -95,9 +95,9 @@ def get_news_by_subscriptions(user):
                 heading = key
             else:
                 heading = "%s (%s)" % (key, descriptions.get(key))
-            async_bot.send_message(user_id, disable_web_page_preview=True,
-                                   text=texts(user_id).HERE_IS_LATEST_NEWS % heading + '\n' + ''.join(to_show))
-            time.sleep(0.1)
+            msg = async_bot.send_message(user_id, disable_web_page_preview=True,
+                                         text=texts(user_id).HERE_IS_LATEST_NEWS % heading + '\n' + ''.join(to_show))
+            msg.wait()
             upd_latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals WHERE "
                                                             "portal_name = '%s' ORDER BY publish_date "
                                                             "DESC LIMIT 1" % key)[0][0]
