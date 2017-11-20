@@ -111,6 +111,7 @@ def send_latest_news_to_channel():
                                                  "WHERE portal_name in (%s) AND send_to_channel = FALSE "
                                                  "ORDER BY news_short_url, publish_date DESC;"
                                                  % str(ResourcesSettings.RESOURCES)[1:-1])
+    logging.info("Starting send %s items to the channel" % len(channel_news))
     for news in channel_news:
         if ResourcesSettings(news[0]).get_country_by_resource() == "belarus":
             message_text = u"\U0001F1E7\U0001F1FE #%s\n%s\n%s"
@@ -125,23 +126,25 @@ def send_latest_news_to_channel():
         # send news to the channel
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton(text=u"\U0001F4F0 Read More", url=news[4]))
-        async_bot.send_message(chat_id="@the_latestnews",
-                               text=message_text % (news[0].replace(".", "_"), news[2], news[3]),
-                               disable_notification=True, reply_markup=markup)
+        msg = async_bot.send_message(chat_id="@the_latestnews",
+                                     text=message_text % (news[0].replace(".", "_"), news[2], news[3]),
+                                     disable_notification=True, reply_markup=markup)
+        msg.wait()
         # mark send_to_channel == true
         DBGetter(DBSettings.HOST).insert("UPDATE news_portals SET send_to_channel = TRUE "
                                          "WHERE news_short_url = '%s'" % news[3])
-        time.sleep(0.1)
+    logging.info("Sending to the channel successfully finished. Was sent %s items" % len(channel_news))
     # send reminder about Feedler Bot into the channel
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=u"\U0001F916 Feedler Bot", url='https://t.me/Feedler_bot'))
-    async_bot.send_message(chat_id="@the_latestnews",
-                           text=u"\U0001F1F7\U0001F1FA Все новости постятся в канал ботом "
-                                u"по имени *Feedler*. Он умеет еще много чего, советуем"
-                                u" попробовать!\n"
-                                u"\U0001F1EC\U0001F1E7 All news are posted to the "
-                                u"channel by a bot named *Feedler*. He knows a lot more, "
-                                u"we advise you to try it!", reply_markup=markup, parse_mode="Markdown")
+    reminder = async_bot.send_message(chat_id="@the_latestnews",
+                                      text=u"\U0001F1F7\U0001F1FA Все новости постятся в канал ботом "
+                                           u"по имени *Feedler*. Он умеет еще много чего, советуем"
+                                           u" попробовать!\n"
+                                           u"\U0001F1EC\U0001F1E7 All news are posted to the "
+                                           u"channel by a bot named *Feedler*. He knows a lot more, "
+                                           u"we advise you to try it!", reply_markup=markup, parse_mode="Markdown")
+    reminder.wait()
 
 
 # обновляем ресурсы по которым есть подписки
@@ -154,7 +157,6 @@ for resource in DBGetter(DBSettings.HOST).get("SELECT DISTINCT subscription FROM
 
 # отправляем последние новости подписчикам
 get_news_by_subscriptions(DBGetter(DBSettings.HOST).get("SELECT DISTINCT user_id FROM users_subscriptions"))
-
 
 # обновляем ресурсы из раздела Топ-5
 for resource in ResourcesSettings.RESOURCES:
