@@ -107,8 +107,9 @@ def get_news_by_subscriptions(user):
 
 
 def send_latest_news_to_channel():
-    channel_news = DBGetter(DBSettings.HOST).get("SELECT DISTINCT ON (portal_name) * FROM news_portals "
-                                                 "WHERE portal_name in (%s) ORDER BY portal_name, publish_date DESC;"
+    channel_news = DBGetter(DBSettings.HOST).get("SELECT DISTINCT ON (news_short_url) * FROM news_portals "
+                                                 "WHERE portal_name in (%s) AND send_to_channel = FALSE "
+                                                 "ORDER BY news_short_url, publish_date DESC;"
                                                  % str(ResourcesSettings.RESOURCES)[1:-1])
     for news in channel_news:
         if ResourcesSettings(news[0]).get_country_by_resource() == "belarus":
@@ -125,9 +126,11 @@ def send_latest_news_to_channel():
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton(text=u"\U0001F4F0 Read More", url=news[4]))
         async_bot.send_message(chat_id="@the_latestnews",
-                               text=message_text % (news[0].replace(".", "_"), news[2],
-                                                    GooGl().short_link(news[3])), disable_notification=True,
-                               reply_markup=markup)
+                               text=message_text % (news[0].replace(".", "_"), news[2], news[3]),
+                               disable_notification=True, reply_markup=markup)
+        # mark send_to_channel == true
+        DBGetter(DBSettings.HOST).insert("UPDATE news_portals SET send_to_channel = TRUE "
+                                         "WHERE news_short_url = '%s'" % news[3])
         time.sleep(0.1)
     # send reminder about Feedler Bot into the channel
     markup = types.InlineKeyboardMarkup()
