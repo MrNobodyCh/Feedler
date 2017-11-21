@@ -70,3 +70,6 @@ RATE_ME = u"If you like me, give me some \u2b50\u2b50\u2b50\u2b50\u2b50 here:"
 ALREADY_SUPPORTED = u"\u2705 I already supported the bot"
 GOT_IT = u"Got it! You are the best! \U0001F44D"
 REMINDER = u"Do you like our bot? — Give him some \u2b50\u2b50\u2b50\u2b50\u2b50"
+SUPPORT_GROUP = u"\u2139 Join our support team! \nBe the first to learn our new features " \
+                u"and feel free to ask any questions. " \
+                u"We welcome any comments and suggestions.\n"
