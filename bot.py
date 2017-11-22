@@ -85,7 +85,8 @@ def language_menu(message):
     # potentially winbacker
     if len(user_lang) > 0:
         bot.send_message(message.chat.id, text=texts(user).WELCOME_BACK % message.chat.first_name)
-        DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = TRUE")
+        DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = TRUE "
+                                         "WHERE user_id = %s" % user)
         main_menu_worker(message)
     else:
         markup = types.InlineKeyboardMarkup()
