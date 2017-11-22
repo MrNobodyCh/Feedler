@@ -74,6 +74,7 @@ def help_menu(message):
     markup.add(types.InlineKeyboardButton(text=texts(user).SUPPORT_TEAM, url=texts(user).SUPPORT_TEAM_LINK))
     markup.add(types.InlineKeyboardButton(text=texts(user).DONATE, url='http://www.donationalerts.ru/r/feedler'))
     bot.send_message(message.chat.id, text=texts(user).LIST_OF_COMMANDS, reply_markup=markup, parse_mode="Markdown")
+    botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
 @bot.message_handler(commands=["start"])
