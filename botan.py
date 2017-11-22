@@ -1,5 +1,5 @@
-import requests
 import json
+import requests
 
 
 TRACK_URL = 'https://api.botan.io/track'

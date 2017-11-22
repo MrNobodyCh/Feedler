@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import logging
 import sys
-
+import logging
 import requests
+
 import telebot
+
 from telebot import types
 
 from getters import DBGetter, texts

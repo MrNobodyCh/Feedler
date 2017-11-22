@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
-import logging
 import sys
 import time
+import logging
 
 import botan
 import telebot
+
 from telebot import types
 
-from config import BotSettings, ResourcesSettings, RssSettings, DBSettings, APISettings
 from getters import RssFinder, RssParser, DBGetter, texts, GooGl
+from config import BotSettings, ResourcesSettings, RssSettings, DBSettings, APISettings
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -66,13 +67,24 @@ def rate_command(message):
     rate(message)
 
 
+@bot.message_handler(content_types=['text'], func=lambda message: message.text == texts(message.chat.id).HELP)
+def help_menu(message):
+    user = message.chat.id
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=texts(user).SUPPORT_TEAM, url=texts(user).SUPPORT_TEAM_LINK))
+    markup.add(types.InlineKeyboardButton(text=texts(user).DONATE, url='http://www.donationalerts.ru/r/feedler'))
+    bot.send_message(message.chat.id, text=texts(user).LIST_OF_COMMANDS, reply_markup=markup, parse_mode="Markdown")
+
+
 @bot.message_handler(commands=["start"])
 def language_menu(message):
     user = message.chat.id
     user_lang = DBGetter(DBSettings.HOST).get("SELECT language FROM users_language "
                                               "WHERE user_id = %s" % message.chat.id)
+    # potentially winbacker
     if len(user_lang) > 0:
         bot.send_message(message.chat.id, text=texts(user).WELCOME_BACK % message.chat.first_name)
+        DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = TRUE")
         main_menu_worker(message)
     else:
         markup = types.InlineKeyboardMarkup()
@@ -152,8 +164,7 @@ def main_menu_worker(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row(texts(user).TOP_PORTALS, texts(user).ENTER_YOUR_SITE)
     markup.row(texts(user).VK, texts(user).SUBSCRIPTIONS)
-    markup.row(texts(user).DONATE, texts(user).RATE_BOT)
-    markup.row(texts(user).FEEDBACK, texts(user).CHANGE_LANGUAGE)
+    markup.row(texts(user).HELP, texts(user).RATE_BOT)
     bot.send_message(message.chat.id, text=texts(user).MAKE_YOUR_CHOICE, reply_markup=markup)
 
 

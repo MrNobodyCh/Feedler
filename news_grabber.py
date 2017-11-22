@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import logging
 import sys
+import logging
 
 import telebot
+
 from telebot import types
-import time
 
 from getters import DBGetter, RssParser, GooGl, texts
 from config import ResourcesSettings, DBSettings, RssSettings, BotSettings
@@ -80,7 +80,6 @@ def get_news_by_subscriptions(user):
             for _ in count:
                 news_count += 1
         for key, value in to_send.iteritems():
-            logging.info("Send %s new posts for user %s and %s" % (len(value), user_id, key))
             to_show = []
             numbering = 0
             for news in value:
@@ -97,13 +96,20 @@ def get_news_by_subscriptions(user):
                 heading = "%s (%s)" % (key, descriptions.get(key))
             msg = async_bot.send_message(user_id, disable_web_page_preview=True,
                                          text=texts(user_id).HERE_IS_LATEST_NEWS % heading + '\n' + ''.join(to_show))
-            msg.wait()
-            upd_latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals WHERE "
-                                                            "portal_name = '%s' ORDER BY publish_date "
-                                                            "DESC LIMIT 1" % key)[0][0]
-            DBGetter(DBSettings.HOST).insert("UPDATE users_subscriptions SET latest_date = '%s' "
-                                             "WHERE subscription = '%s' AND user_id = %s" %
-                                             (int(upd_latest_date), key, user_id))
+            result = msg.wait()
+            # check that the user is still active
+            try:
+                logging.info("Send %s new posts for user %s and %s" % (len(value), result.chat.id, key))
+                upd_latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals WHERE "
+                                                                "portal_name = '%s' ORDER BY publish_date "
+                                                                "DESC LIMIT 1" % key)[0][0]
+                DBGetter(DBSettings.HOST).insert("UPDATE users_subscriptions SET latest_date = '%s' "
+                                                 "WHERE subscription = '%s' AND user_id = %s" %
+                                                 (int(upd_latest_date), key, user_id))
+            except Exception as e:
+                logging.info("%s. No active user with user_id: %s and Response Status: %s" % (e, user_id, result))
+                DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = FALSE "
+                                                 "WHERE user_id = '%s'" % int(user_id))
 
 
 def send_latest_news_to_channel():
@@ -147,20 +153,29 @@ def send_latest_news_to_channel():
     reminder.wait()
 
 
-# обновляем ресурсы по которым есть подписки
-for resource in DBGetter(DBSettings.HOST).get("SELECT DISTINCT subscription FROM users_subscriptions"):
+# update resources for which there are subscriptions
+resources = DBGetter(DBSettings.HOST).get("SELECT * FROM (SELECT DISTINCT users_subscriptions.subscription "
+                                          "FROM users_subscriptions, users_language "
+                                          "WHERE users_language.user_id = users_subscriptions.user_id "
+                                          "AND users_language.active_status = TRUE "
+                                          "ORDER BY users_subscriptions.subscription) AS tmp")
+for resource in resources:
     if resource[0] in ResourcesSettings.RESOURCES:
         for k, v in ResourcesSettings(resource[0]).get_categories().iteritems():
             NewsGrabber(RssSettings("http://" + resource[0]).get_full_rss_url() % v).get_news(resource[0])
     else:
         NewsGrabber(resource[0]).get_news(resource[0])
 
-# отправляем последние новости подписчикам
-get_news_by_subscriptions(DBGetter(DBSettings.HOST).get("SELECT DISTINCT user_id FROM users_subscriptions"))
+# send the latest news to subscribers with active_status = true
+send_to_users = DBGetter(DBSettings.HOST).get("SELECT * FROM (SELECT DISTINCT users_subscriptions.user_id FROM "
+                                              "users_subscriptions, users_language WHERE "
+                                              "users_language.user_id = users_subscriptions.user_id AND "
+                                              "users_language.active_status = TRUE) AS tmp")
+get_news_by_subscriptions(send_to_users)
 
-# обновляем ресурсы из раздела Топ-5
+# update resources from the top-5 section
 for resource in ResourcesSettings.RESOURCES:
-    if len(DBGetter(DBSettings.HOST).get("SELECT * FROM users_subscriptions WHERE subscription = '%s'" % resource)) > 0:
+    if len([item for item in resources if item[0] == resource]) > 0:
         pass
     else:
         for a, b in ResourcesSettings(resource).get_categories().iteritems():

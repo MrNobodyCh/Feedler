@@ -73,3 +73,14 @@ REMINDER = u"Do you like our bot? — Give him some \u2b50\u2b50\u2b50\u2b50\u2b
 SUPPORT_GROUP = u"\u2139 Join our support team! \nBe the first to learn our new features " \
                 u"and feel free to ask any questions. " \
                 u"We welcome any comments and suggestions.\n"
+HELP = u"\U0001F511 Help"
+LIST_OF_COMMANDS = "*Instead of the main menu, you can use the following commands:* \n" \
+                   "/search - Look for RRS/Atom feeds and subscribe for them. Also bot can find " \
+                   "feeds on a YouTube channels and LiveJournal blogs\n" \
+                   "/subscriptions - List of your subscriptions\n" \
+                   "/top5 - Read the news by top resources in real time\n" \
+                   "/vk - Browse pictures in the top VK groups in real time\n" \
+                   "/feedback - We're happy to hear any feedback from you\n" \
+                   "/language - Change the language"
+SUPPORT_TEAM_LINK = "https://t.me/joinchat/GO9Jewvuaeq7cifPJdLrgA"
+SUPPORT_TEAM = u"\U0001F6E0 Support team"

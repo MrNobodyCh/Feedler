@@ -2,11 +2,12 @@
 import re
 import sys
 import urllib
-
-import telebot
-from telebot import types
-import vk_api
 import logging
+
+import vk_api
+import telebot
+
+from telebot import types
 
 from getters import DBGetter
 from config import APISettings, BotSettings, DBSettings

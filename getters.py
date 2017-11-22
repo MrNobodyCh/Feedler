@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import time
 import json
-import psycopg2
 import requests
+
+import psycopg2
 import feedparser
+
 from feedfinder2 import find_feeds
+
 from config import APISettings, DBSettings
 
 
