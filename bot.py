@@ -257,7 +257,7 @@ def process_url(message):
             feeds = RssFinder(str(url.lower())).find_feeds()
             to_show = []
             if len(feeds) > 0:
-                if len(feeds) < 5:
+                if len(feeds) <= 5:
                     for feed in feeds:
                         menu.row(u"%s. \U0001F4E8 %s" % (str(feeds.index(feed) + 1), str(feed[1]))),
                         to_show.append("%s. %s - %s\n" % (str(feeds.index(feed) + 1), str(feed[0]), str(feed[1])))
