@@ -474,6 +474,7 @@ def subscribe_unsubscribe_user(message):
         if check_subscribe > 0:
             bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
         else:
+            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
             try:
                 description = RssFinder(resource_name).find_feeds()[0][0]
             except Exception:
@@ -488,7 +489,6 @@ def subscribe_unsubscribe_user(message):
             sql = "INSERT INTO users_subscriptions (user_id, subscription, " \
                   "description, latest_date) VALUES (%s, %s, %s, %s)"
             DBGetter(DBSettings.HOST).insert(sql, (user, resource_name, description, latest_date))
-            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
             # send latest news from rss feed
             latest_news_from_db = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_short_url, news_full_url "
                                                                 "FROM news_portals WHERE rss_url = '%s' "
@@ -689,8 +689,8 @@ def get_news_by_top_resources(call):
             bot.send_message(call.message.chat.id,
                              text=texts(user).LATEST_NEWS % (resource, category_name), parse_mode="Markdown")
     latest_news = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_short_url, news_full_url "
-                                                "FROM news_portals WHERE rss_url = '%s' "
-                                                "ORDER BY publish_date DESC" % rss_url)
+                                                "FROM news_portals WHERE portal_name = '%s' AND rss_url = '%s' "
+                                                "ORDER BY publish_date DESC" % (resource, rss_url))
     paginate_top_sites[user] = latest_news
     for news in chunkIt(paginate_top_sites.get(user), float('%.1f' % len(paginate_top_sites.get(user))) / 1)[0]:
         markup = types.InlineKeyboardMarkup()

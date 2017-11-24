@@ -42,7 +42,8 @@ class NewsGrabber(object):
                 pass
         # удаляем из БД посты (по каждому RSS фиду кол-во не должно быть > 10)
         posts_count = DBGetter(DBSettings.HOST).get("SELECT COUNT(*) FROM news_portals "
-                                                    "WHERE rss_url = '%s'" % self.rss_url)
+                                                    "WHERE portal_name = '%s' "
+                                                    "AND rss_url = '%s'" % (portal_name, self.rss_url))
         if int(posts_count[0][0]) > 10:
             to_delete = int(posts_count[0][0]) - 10
             delete_old_posts = "DELETE FROM news_portals WHERE ctid IN (SELECT ctid FROM news_portals " \
