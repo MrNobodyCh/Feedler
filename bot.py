@@ -413,7 +413,7 @@ def subscriptions_menu(message):
     subscriptions = DBGetter(DBSettings.HOST).get("SELECT subscription, description FROM "
                                                   "users_subscriptions WHERE user_id = %s" % user)
     if len(subscriptions) > 0:
-        if len(subscriptions) < 5:
+        if len(subscriptions) <= 5:
             menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
             to_show = []
             x = 0
@@ -475,20 +475,26 @@ def subscribe_unsubscribe_user(message):
             bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
         else:
             bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
+            # add resource for current user
+            sql = "INSERT INTO users_subscriptions (user_id, subscription, " \
+                  "description, latest_date) VALUES (%s, %s, %s, %s)"
+            DBGetter(DBSettings.HOST).insert(sql, (user, resource_name, None, int(time.time())))
             try:
                 description = RssFinder(resource_name).find_feeds()[0][0]
-            except Exception:
+            except Exception as error:
+                logging.info("%s: Not found description for %s" % (error, resource_name))
                 description = None
             try:
                 latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
                                                             "WHERE portal_name = '%s' ORDER BY publish_date DESC"
                                                             % '%s' % resource_name)[:1][0][0]
-            except Exception:
+            except Exception as error:
+                logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
                 latest_date = int(time.time())
-            # add resource for current user
-            sql = "INSERT INTO users_subscriptions (user_id, subscription, " \
-                  "description, latest_date) VALUES (%s, %s, %s, %s)"
-            DBGetter(DBSettings.HOST).insert(sql, (user, resource_name, description, latest_date))
+            # update description and latest date if it was found
+            sql = "UPDATE users_subscriptions SET description = %s, latest_date = %s " \
+                  "WHERE user_id = %s AND subscription= %s"
+            DBGetter(DBSettings.HOST).insert(sql, (description, latest_date, user, resource_name))
             # send latest news from rss feed
             latest_news_from_db = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_short_url, news_full_url "
                                                                 "FROM news_portals WHERE rss_url = '%s' "
@@ -515,7 +521,7 @@ def subscribe_unsubscribe_user(message):
                                          "%s\n%s" % (news[0], GooGl().short_link(news[1])),
                                          disable_notification=True, reply_markup=markup)
                 except Exception as error:
-                    logging.error(error)
+                    logging.info("%s: Cannot get the latest news from resource: %s" % (error, resource_name))
                     pass
 
     if message.text.split()[1] == u"\u274C":
@@ -537,7 +543,8 @@ def subscribe_unsubscribe_user(message):
                 latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
                                                             "WHERE portal_name = '%s' ORDER BY publish_date DESC"
                                                             % '%s' % resource_name)[:1][0][0]
-            except Exception:
+            except Exception as error:
+                logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
                 latest_date = int(time.time())
             DBGetter(DBSettings.HOST).insert("INSERT INTO users_subscriptions (user_id, subscription, latest_date) "
                                              "VALUES (%s, '%s', %s)" % (user, resource_name, latest_date))
