@@ -486,8 +486,9 @@ def subscribe_unsubscribe_user(message):
                 description = None
             try:
                 latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
-                                                            "WHERE portal_name = '%s' ORDER BY publish_date DESC"
-                                                            % '%s' % resource_name)[:1][0][0]
+                                                            "WHERE portal_name = '%s' OR rss_url = '%s' "
+                                                            "ORDER BY publish_date DESC"
+                                                            % (resource_name, resource_name))[:1][0][0]
             except Exception as error:
                 logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
                 latest_date = int(time.time())
