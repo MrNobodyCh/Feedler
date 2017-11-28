@@ -336,8 +336,8 @@ def pagination_worker(call):
                                                                        % (int(call.data.split("_")[1]) + 1))]
             markup.row(*row)
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  text=texts(call.message.chat.id).LIST_OF_SUBSCRIPTIONS + '\n' + ''.join(to_show),
-                                  reply_markup=markup)
+                                  text=texts(call.message.chat.id).LIST_OF_SUBSCRIPTIONS %
+                                  str(len(paginate_sub.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
         except (IndexError, TypeError):
             pass
 
@@ -427,8 +427,8 @@ def subscriptions_menu(message):
                 menu.row(u"%s. \u274C %s" % (x, item[0]))
             menu.row(texts(user).BACK_TO_MAIN_MENU)
             bot.send_message(message.chat.id,
-                             text=texts(user).LIST_OF_SUBSCRIPTIONS + '\n' + ''.join(to_show) + '\n' + texts(
-                                 user).YOU_CAN_UNSUBSCRIBE, reply_markup=menu)
+                             text=texts(user).LIST_OF_SUBSCRIPTIONS % str(len(subscriptions)) + '\n' +
+                             ''.join(to_show) + '\n' + texts(user).YOU_CAN_UNSUBSCRIBE, reply_markup=menu)
         if len(subscriptions) > 5:
             paginate_sub[user] = subscriptions
             menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -449,8 +449,8 @@ def subscriptions_menu(message):
             row = [types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_sub" % 1)]
             markup.row(*row)
             menu.row(texts(message.chat.id).BACK_TO_MAIN_MENU)
-            bot.send_message(message.chat.id, text=texts(user).LIST_OF_SUBSCRIPTIONS + '\n' + ''.join(to_show),
-                             reply_markup=markup)
+            bot.send_message(message.chat.id, text=texts(user).LIST_OF_SUBSCRIPTIONS % str(len(subscriptions)) + '\n' +
+                             ''.join(to_show), reply_markup=markup)
             bot.send_message(message.chat.id, text=texts(user).YOU_CAN_UNSUBSCRIBE,
                              reply_markup=menu, parse_mode="Markdown")
     else:
