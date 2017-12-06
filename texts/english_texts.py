@@ -84,3 +84,8 @@ LIST_OF_COMMANDS = "*Instead of the main menu, you can use the following command
                    "/language - Change the language"
 SUPPORT_TEAM_LINK = "https://t.me/joinchat/GO9Jewvuaeq7cifPJdLrgA"
 SUPPORT_TEAM = u"\U0001F6E0 Support team"
+CONNECT_CHANNEL = u"\U0001F4E2 Connect channel"
+ENTER_CHANNEL_NAME = "Enter channel name in the format *@YourChannelName*:"
+FINISH_CHANNEL = u"\U0001F51A Finish configuring the channel"
+CHECK_VALID_CHANNEL = "Check that the Feedler is an administrator of the channel, " \
+                      "and also check the channel name is entered correctly."
