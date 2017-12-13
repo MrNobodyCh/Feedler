@@ -108,8 +108,8 @@ def get_news_by_subscriptions(user):
                 DBGetter(DBSettings.HOST).insert("UPDATE users_subscriptions SET latest_date = '%s' "
                                                  "WHERE subscription = '%s' AND user_id = %s" %
                                                  (int(upd_latest_date), key, user_id))
-            except Exception as e:
-                logging.info("%s. No active user with user_id: %s and Response Status: %s" % (e, user_id, result))
+            except Exception as err:
+                logging.info("%s. No active user with user_id: %s and Response Status: %s" % (err, user_id, result))
                 DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = FALSE "
                                                  "WHERE user_id = '%s'" % int(user_id))
 
