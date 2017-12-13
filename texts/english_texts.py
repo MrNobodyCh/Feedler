@@ -87,5 +87,5 @@ SUPPORT_TEAM = u"\U0001F6E0 Support team"
 CONNECT_CHANNEL = u"\U0001F4E2 Connect channel"
 ENTER_CHANNEL_NAME = "Enter channel name in the format *@YourChannelName*:"
 FINISH_CHANNEL = u"\U0001F51A Finish configuring the channel"
-CHECK_VALID_CHANNEL = "Check that the Feedler is an administrator of the channel, " \
+CHECK_CHANNEL_VALID = "Check that the Feedler is an administrator of the channel, " \
                       "and also check the channel name is entered correctly."

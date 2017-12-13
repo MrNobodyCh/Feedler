@@ -71,10 +71,42 @@ def rate_command(message):
 def help_menu(message):
     user = message.chat.id
     markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=texts(user).CONNECT_CHANNEL, callback_data="connect_channel"))
     markup.add(types.InlineKeyboardButton(text=texts(user).SUPPORT_TEAM, url=texts(user).SUPPORT_TEAM_LINK))
     markup.add(types.InlineKeyboardButton(text=texts(user).DONATE, url='http://www.donationalerts.ru/r/feedler'))
     bot.send_message(message.chat.id, text=texts(user).LIST_OF_COMMANDS, reply_markup=markup, parse_mode="Markdown")
     # botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "connect_channel")
+def connect_channel_menu(call):
+    try:
+        user = call.message.chat.id
+    except Exception as info:
+        user = call.chat.id
+        logging.info("%s: re-entering the channel name" % info)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row(texts(user).FINISH_CHANNEL)
+    msg = bot.send_message(user, text=texts(user).ENTER_CHANNEL_NAME, reply_markup=markup, parse_mode="Markdown")
+    bot.register_next_step_handler(msg, process_channel)
+
+
+def process_channel(message):
+    user = message.chat.id
+    channel_name = message.text
+    if channel_name not in BotSettings.COMMANDS and channel_name != texts(user).FINISH_CHANNEL:
+        try:
+            channel = bot.get_chat_member(channel_name, bot.get_me().id)
+            print channel
+            if channel.status == "administrator":
+                bot.send_message(user, text="Ok!")
+            else:
+                bot.send_message(user, text=texts(user).CHECK_CHANNEL_VALID)
+        except Exception as error:
+            bot.send_message(user, text=texts(user).CHECK_CHANNEL_VALID)
+            logging.error("An error after the channel name processing: %s" % error)
+            time.sleep(1)
+            connect_channel_menu(message)
 
 
 @bot.message_handler(commands=["start"])
@@ -562,6 +594,12 @@ def subscribe_unsubscribe_user(message):
 @bot.message_handler(content_types=['text'],
                      func=lambda message: message.text == texts(message.chat.id).BACK_TO_MAIN_MENU)
 def back_main_menu(message):
+    main_menu_worker(message)
+
+
+@bot.message_handler(content_types=['text'],
+                     func=lambda message: message.text == texts(message.chat.id).FINISH_CHANNEL)
+def back_main_menu_after_channel(message):
     main_menu_worker(message)
 
 
