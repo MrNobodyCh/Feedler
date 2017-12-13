@@ -2,6 +2,7 @@
 import sys
 import logging
 
+import requests
 import telebot
 
 from telebot import types
@@ -163,9 +164,20 @@ resources = DBGetter(DBSettings.HOST).get("SELECT * FROM (SELECT DISTINCT users_
 for resource in resources:
     if resource[0] in ResourcesSettings.RESOURCES:
         for k, v in ResourcesSettings(resource[0]).get_categories().iteritems():
-            NewsGrabber(RssSettings("http://" + resource[0]).get_full_rss_url() % v).get_news(resource[0])
+            resource_url = RssSettings("http://" + resource[0]).get_full_rss_url() % v
+            try:
+                requests.get(resource_url, timeout=10)
+                NewsGrabber(resource_url).get_news(resource[0])
+            except requests.exceptions.Timeout as e:
+                logging.info("%s during processing the resource %s" % (e, resource_url))
+                pass
     else:
-        NewsGrabber(resource[0]).get_news(resource[0])
+        try:
+            requests.get(resource[0], timeout=10)
+            NewsGrabber(resource[0]).get_news(resource[0])
+        except requests.exceptions.Timeout as e:
+            logging.info("%s during processing the resource %s" % (e, resource[0]))
+            pass
 
 # send the latest news to subscribers with active_status = true
 send_to_users = DBGetter(DBSettings.HOST).get("SELECT * FROM (SELECT DISTINCT users_subscriptions.user_id FROM "
@@ -180,6 +192,12 @@ for resource in ResourcesSettings.RESOURCES:
         pass
     else:
         for a, b in ResourcesSettings(resource).get_categories().iteritems():
-            NewsGrabber(RssSettings("http://" + resource).get_full_rss_url() % b).get_news(resource)
+            resource_url = (RssSettings("http://" + resource).get_full_rss_url() % b)
+            try:
+                requests.get(resource_url, timeout=10)
+                NewsGrabber(resource_url).get_news(resource)
+            except requests.exceptions.Timeout as e:
+                logging.info("%s during processing the resource %s" % (e, resource_url))
+                pass
 
 send_latest_news_to_channel()
