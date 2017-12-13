@@ -166,7 +166,7 @@ for resource in resources:
         for k, v in ResourcesSettings(resource[0]).get_categories().iteritems():
             resource_url = RssSettings("http://" + resource[0]).get_full_rss_url() % v
             try:
-                requests.get(resource_url, timeout=10)
+                requests.get(resource_url, verify=True, timeout=10)
                 NewsGrabber(resource_url).get_news(resource[0])
             except requests.exceptions.Timeout as e:
                 logging.info("%s during processing the resource %s" % (e, resource_url))
@@ -197,7 +197,7 @@ for resource in ResourcesSettings.RESOURCES:
         for a, b in ResourcesSettings(resource).get_categories().iteritems():
             resource_url = (RssSettings("http://" + resource).get_full_rss_url() % b)
             try:
-                requests.get(resource_url, timeout=10)
+                requests.get(resource_url, verify=True, timeout=10)
                 NewsGrabber(resource_url).get_news(resource)
             except requests.exceptions.Timeout as e:
                 logging.info("%s during processing the resource %s" % (e, resource_url))
