@@ -171,7 +171,7 @@ for resource in resources:
             except requests.exceptions.Timeout as e:
                 logging.info("%s during processing the resource %s" % (e, resource_url))
                 pass
-            except (requests.exceptions.RequestException, AttributeError) as e:
+            except (requests.exceptions.RequestException, Exception) as e:
                 logging.info("%s during processing the resource %s" % (e, resource_url))
                 pass
     else:
@@ -179,6 +179,9 @@ for resource in resources:
             requests.get(resource[0], timeout=10)
             NewsGrabber(resource[0]).get_news(resource[0])
         except requests.exceptions.Timeout as e:
+            logging.info("%s during processing the resource %s" % (e, resource[0]))
+            pass
+        except (requests.exceptions.RequestException, Exception) as e:
             logging.info("%s during processing the resource %s" % (e, resource[0]))
             pass
 
@@ -202,7 +205,7 @@ for resource in ResourcesSettings.RESOURCES:
             except requests.exceptions.Timeout as e:
                 logging.info("%s during processing the resource %s" % (e, resource_url))
                 pass
-            except (requests.exceptions.RequestException, AttributeError) as e:
+            except (requests.exceptions.RequestException, Exception) as e:
                 logging.info("%s during processing the resource %s" % (e, resource_url))
                 pass
 
