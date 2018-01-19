@@ -3,13 +3,11 @@ import sys
 import time
 import logging
 
-import botan
 import telebot
 
-from telebot import types
 
 from getters import RssFinder, RssParser, DBGetter, texts, GooGl
-from config import BotSettings, ResourcesSettings, RssSettings, DBSettings, APISettings
+from config import BotSettings, ResourcesSettings, RssSettings, DBSettings
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -19,6 +17,7 @@ logging.basicConfig(filename='logs/debug.log', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S %p")
 
 bot = telebot.TeleBot(BotSettings.TOKEN)
+types = telebot.types
 
 
 @bot.message_handler(commands=["menu"])
