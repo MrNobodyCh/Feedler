@@ -466,95 +466,117 @@ def subscriptions_menu(message):
 def subscribe_unsubscribe_user(message):
     user = message.chat.id
     # subscribe/unsubscribe to unknown resources
+    # subscription process
     if message.text.split()[1] == u"\U0001F4E8":
-        resource_name = message.text.split()[2]
-        check_subscribe = DBGetter(DBSettings.HOST).get("SELECT count(*) FROM users_subscriptions "
-                                                        "WHERE user_id = '%s' AND subscription = '%s'"
-                                                        % (int(user), resource_name))[0][0]
-        if check_subscribe > 0:
-            bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
-        else:
-            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
-            # add resource for current user
-            sql = "INSERT INTO users_subscriptions (user_id, subscription, " \
-                  "description, latest_date) VALUES (%s, %s, %s, %s)"
-            DBGetter(DBSettings.HOST).insert(sql, (user, resource_name, None, int(time.time())))
-            try:
-                description = RssFinder(resource_name).find_feeds()[0][0]
-            except Exception as error:
-                logging.info("%s: Not found description for %s" % (error, resource_name))
-                description = None
-            try:
-                latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
-                                                            "WHERE portal_name = '%s' OR rss_url = '%s' "
-                                                            "ORDER BY publish_date DESC"
-                                                            % (resource_name, resource_name))[:1][0][0]
-            except Exception as error:
-                logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
-                latest_date = int(time.time())
-            # update description and latest date if it was found
-            sql = "UPDATE users_subscriptions SET description = %s, latest_date = %s " \
-                  "WHERE user_id = %s AND subscription= %s"
-            DBGetter(DBSettings.HOST).insert(sql, (description, latest_date, user, resource_name))
-            # send latest news from rss feed
-            latest_news_from_db = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_short_url, news_full_url "
-                                                                "FROM news_portals WHERE rss_url = '%s' "
-                                                                "ORDER BY publish_date DESC" % resource_name)[:1]
-            if description is None:
-                heading = resource_name
+        try:
+            resource_name = message.text.split()[2]
+            check_subscribe = DBGetter(DBSettings.HOST).get("SELECT count(*) FROM users_subscriptions "
+                                                            "WHERE user_id = '%s' AND subscription = '%s'"
+                                                            % (int(user), resource_name))[0][0]
+            if check_subscribe > 0:
+                bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
             else:
-                heading = "%s (%s)" % (resource_name, description)
-            if latest_news_from_db > 0:
-                for news in latest_news_from_db:
-                    markup = types.InlineKeyboardMarkup()
-                    markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
-                    bot.send_message(chat_id=user,
-                                     text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' + "%s\n%s"
-                                                                                               % (news[0], news[1]),
-                                     disable_notification=True, reply_markup=markup)
-            if len(latest_news_from_db) == 0:
+                bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
+                # add resource for current user
+                sql = "INSERT INTO users_subscriptions (user_id, subscription, " \
+                      "description, latest_date) VALUES (%s, %s, %s, %s)"
+                DBGetter(DBSettings.HOST).insert(sql, (user, resource_name, None, int(time.time())))
                 try:
-                    latest_news_from_http = RssParser(str(resource_name)).get_news_for_known_resource()[:1]
-                    for news in latest_news_from_http:
-                        markup = types.InlineKeyboardMarkup()
-                        markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
-                        bot.send_message(chat_id=user, text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' +
-                                         "%s\n%s" % (news[0], GooGl().short_link(news[1])),
-                                         disable_notification=True, reply_markup=markup)
+                    description = RssFinder(resource_name).find_feeds()[0][0]
                 except Exception as error:
-                    logging.info("%s: Cannot get the latest news from resource: %s" % (error, resource_name))
-                    pass
+                    logging.info("%s: Not found description for %s" % (error, resource_name))
+                    description = None
+                try:
+                    latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
+                                                                "WHERE portal_name = '%s' OR rss_url = '%s' "
+                                                                "ORDER BY publish_date DESC"
+                                                                % (resource_name, resource_name))[:1][0][0]
+                except Exception as error:
+                    logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
+                    latest_date = int(time.time())
+                # update description and latest date if it was found
+                sql = "UPDATE users_subscriptions SET description = %s, latest_date = %s " \
+                      "WHERE user_id = %s AND subscription= %s"
+                DBGetter(DBSettings.HOST).insert(sql, (description, latest_date, user, resource_name))
+                # send latest news from rss feed
+                latest_news_from_db = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_short_url, "
+                                                                    "news_full_url FROM news_portals "
+                                                                    "WHERE rss_url = '%s' ORDER BY publish_date "
+                                                                    "DESC" % resource_name)[:1]
+                if description is None:
+                    heading = resource_name
+                else:
+                    heading = "%s (%s)" % (resource_name, description)
+                if latest_news_from_db > 0:
+                    for news in latest_news_from_db:
+                        markup = types.InlineKeyboardMarkup()
+                        markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
+                        bot.send_message(chat_id=user,
+                                         text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' + "%s\n%s"
+                                                                                                   % (news[0], news[1]),
+                                         disable_notification=True, reply_markup=markup)
+                if len(latest_news_from_db) == 0:
+                    try:
+                        latest_news_from_http = RssParser(str(resource_name)).get_news_for_known_resource()[:1]
+                        for news in latest_news_from_http:
+                            markup = types.InlineKeyboardMarkup()
+                            markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
+                            bot.send_message(chat_id=user, text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' +
+                                             "%s\n%s" % (news[0], GooGl().short_link(news[1])),
+                                             disable_notification=True, reply_markup=markup)
+                    except Exception as error:
+                        logging.info("%s: Cannot get the latest news from resource: %s" % (error, resource_name))
+                        pass
+        except IndexError as error:
+            logging.info("%s: Seems like manual input %s" % (error, message.text))
+            pass
 
+    # unsubscription process
     if message.text.split()[1] == u"\u274C":
-        resource_name = message.text.split()[2]
-        DBGetter(DBSettings.HOST).insert("DELETE FROM users_subscriptions WHERE user_id = %s "
-                                         "AND subscription = '%s'" % (user, resource_name))
-        bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_UNSUBSCRIBED % resource_name)
+        try:
+            resource_name = message.text.split()[2]
+            DBGetter(DBSettings.HOST).insert("DELETE FROM users_subscriptions WHERE user_id = %s "
+                                             "AND subscription = '%s'" % (user, resource_name))
+            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_UNSUBSCRIBED % resource_name)
+        except IndexError as error:
+            logging.info("%s: Seems like manual input %s" % (error, message.text))
+            pass
 
     # subscribe/unsubscribe to top resources
+    # subscription process
     if message.text.split()[0] == u"\U0001F4E8":
-        resource_name = message.text.split()[3]
-        check_subscribe = DBGetter(DBSettings.HOST).get("SELECT count(*) FROM users_subscriptions "
-                                                        "WHERE user_id = '%s' AND subscription = '%s'"
-                                                        % (int(user), resource_name))[0][0]
-        if check_subscribe > 0:
-            bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
-        else:
-            try:
-                latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
-                                                            "WHERE portal_name = '%s' ORDER BY publish_date DESC"
-                                                            % '%s' % resource_name)[:1][0][0]
-            except Exception as error:
-                logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
-                latest_date = int(time.time())
-            DBGetter(DBSettings.HOST).insert("INSERT INTO users_subscriptions (user_id, subscription, latest_date) "
-                                             "VALUES (%s, '%s', %s)" % (user, resource_name, latest_date))
-            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
+        try:
+            resource_name = message.text.split()[3]
+            check_subscribe = DBGetter(DBSettings.HOST).get("SELECT count(*) FROM users_subscriptions "
+                                                            "WHERE user_id = '%s' AND subscription = '%s'"
+                                                            % (int(user), resource_name))[0][0]
+            if check_subscribe > 0:
+                bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
+            else:
+                try:
+                    latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
+                                                                "WHERE portal_name = '%s' ORDER BY publish_date DESC"
+                                                                % '%s' % resource_name)[:1][0][0]
+                except Exception as error:
+                    logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
+                    latest_date = int(time.time())
+                DBGetter(DBSettings.HOST).insert("INSERT INTO users_subscriptions (user_id, subscription, latest_date) "
+                                                 "VALUES (%s, '%s', %s)" % (user, resource_name, latest_date))
+                bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
+        except IndexError as error:
+            logging.info("%s: Seems like manual input %s" % (error, message.text))
+            pass
+
+    # unsubscription process
     if message.text.split()[0] == u"\u274C":
-        resource_name = message.text.split()[3]
-        DBGetter(DBSettings.HOST).insert("DELETE FROM users_subscriptions WHERE user_id = %s "
-                                         "AND subscription = '%s'" % (user, resource_name))
-        bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_UNSUBSCRIBED % resource_name)
+        try:
+            resource_name = message.text.split()[3]
+            DBGetter(DBSettings.HOST).insert("DELETE FROM users_subscriptions WHERE user_id = %s "
+                                             "AND subscription = '%s'" % (user, resource_name))
+            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_UNSUBSCRIBED % resource_name)
+        except IndexError as error:
+            logging.info("%s: Seems like manual input %s" % (error, message.text))
+            pass
 
     # botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
