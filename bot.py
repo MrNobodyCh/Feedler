@@ -3,13 +3,12 @@ import sys
 import time
 import logging
 
-import botan
 import telebot
 
 from telebot import types
 
 from getters import RssFinder, RssParser, DBGetter, texts, GooGl
-from config import BotSettings, ResourcesSettings, RssSettings, DBSettings, APISettings
+from config import BotSettings, ResourcesSettings, RssSettings, DBSettings
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -228,7 +227,7 @@ paginate_top_memes = {}
 paginate_top_sites = {}
 
 
-def chunkIt(seq, num):
+def chunk_it(seq, num):
     avg = len(seq) / float(num)
     out = []
     last = 0.0
@@ -271,7 +270,7 @@ def process_url(message):
                     menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
                     markup = types.InlineKeyboardMarkup()
                     to_show = []
-                    for feed in chunkIt(paginate_rss.get(user), float('%.1f' % len(paginate_rss.get(user))) / 5)[0]:
+                    for feed in chunk_it(paginate_rss.get(user), float('%.1f' % len(paginate_rss.get(user))) / 5)[0]:
                         to_show.append("%s. %s - %s\n" % (str(paginate_rss.get(user).index(feed) + 1),
                                                           str(feed[0]), str(feed[1])))
                     for feed in paginate_rss.get(user):
@@ -303,8 +302,8 @@ def pagination_worker(call):
         to_show = []
         markup = types.InlineKeyboardMarkup()
         try:
-            for feed in chunkIt(paginate_rss.get(user),
-                                float('%.1f' % len(paginate_rss.get(user))) / 5)[int(call.data.split("_")[1])]:
+            for feed in chunk_it(paginate_rss.get(user),
+                                 float('%.1f' % len(paginate_rss.get(user))) / 5)[int(call.data.split("_")[1])]:
                 to_show.append("%s. %s - %s\n" % (str(paginate_rss.get(user).index(feed) + 1),
                                                   str(feed[0]), str(feed[1])))
             row = [types.InlineKeyboardButton(u"\u2B05", callback_data="<<_%s_rss"
@@ -312,9 +311,12 @@ def pagination_worker(call):
                    types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_rss"
                                                                        % (int(call.data.split("_")[1]) + 1))]
             markup.row(*row)
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  text=texts(call.message.chat.id).SELECT_RSS_CHANNEL
-                                  % str(len(paginate_rss.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
+            try:
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                      text=texts(call.message.chat.id).SELECT_RSS_CHANNEL
+                                      % str(len(paginate_rss.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
+            except Exception as error:
+                logging.info("Error occurred during the RSS feeds pagination: %s" % error)
         except (IndexError, TypeError):
             pass
 
@@ -323,8 +325,8 @@ def pagination_worker(call):
         to_show = []
         markup = types.InlineKeyboardMarkup()
         try:
-            for item in chunkIt(paginate_sub.get(user),
-                                float('%.1f' % len(paginate_sub.get(user))) / 5)[int(call.data.split("_")[1])]:
+            for item in chunk_it(paginate_sub.get(user),
+                                 float('%.1f' % len(paginate_sub.get(user))) / 5)[int(call.data.split("_")[1])]:
                 if item[1] is None:
                     heading = "%s. %s\n" % (str(paginate_sub.get(user).index(item) + 1), item[0])
                 else:
@@ -335,9 +337,12 @@ def pagination_worker(call):
                    types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_sub"
                                                                        % (int(call.data.split("_")[1]) + 1))]
             markup.row(*row)
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  text=texts(call.message.chat.id).LIST_OF_SUBSCRIPTIONS %
-                                  str(len(paginate_sub.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
+            try:
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                      text=texts(call.message.chat.id).LIST_OF_SUBSCRIPTIONS %
+                                      str(len(paginate_sub.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
+            except Exception as error:
+                logging.info("Error occurred during the user subscriptions pagination: %s" % error)
         except (IndexError, TypeError):
             pass
 
@@ -345,8 +350,8 @@ def pagination_worker(call):
     if call.data.split("_")[2] == "sites":
         markup = types.InlineKeyboardMarkup()
         try:
-            for news in chunkIt(paginate_top_sites.get(user),
-                                float('%.1f' % len(paginate_top_sites.get(user))) / 1)[int(call.data.split("_")[1])]:
+            for news in chunk_it(paginate_top_sites.get(user),
+                                 float('%.1f' % len(paginate_top_sites.get(user))) / 1)[int(call.data.split("_")[1])]:
                 markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
                 row = [types.InlineKeyboardButton(u"\u2B05", callback_data="<<_%s_sites_%s_%s_%s"
                                                                            % (int(call.data.split("_")[1]) - 1,
@@ -359,8 +364,11 @@ def pagination_worker(call):
                                                                               call.data.split("_")[4],
                                                                               call.data.split("_")[5]))]
                 markup.row(*row)
-                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                      text="%s\n%s" % (news[0], news[1]), reply_markup=markup)
+                try:
+                    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                          text="%s\n%s" % (news[0], news[1]), reply_markup=markup)
+                except Exception as error:
+                    logging.info("Error occurred during the top sites news pagination: %s" % error)
         except (IndexError, TypeError):
             markup = types.InlineKeyboardMarkup()
             markup.add(types.InlineKeyboardButton(text=texts(user).CHOOSE_ANOTHER_SECTION,
@@ -377,30 +385,43 @@ def pagination_worker(call):
                types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_memes" % (int(call.data.split("_")[1]) + 1))]
         markup.row(*row)
         try:
-            for x in chunkIt(paginate_top_memes.get(user),
-                             float('%.1f' % len(paginate_top_memes.get(user))) / 1)[int(call.data.split("_")[1])]:
+            for x in chunk_it(paginate_top_memes.get(user),
+                              float('%.1f' % len(paginate_top_memes.get(user))) / 1)[int(call.data.split("_")[1])]:
                 # x[0] - caption, x[1] - type, x[2] - file_id
                 # отправляем просто картинки
                 if x[1] == "photo_no_caption":
-                    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-                    bot.send_photo(call.message.chat.id, photo=x[2], disable_notification=True, reply_markup=markup)
+                    try:
+                        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+                        bot.send_photo(call.message.chat.id, photo=x[2], disable_notification=True, reply_markup=markup)
+                    except Exception as error:
+                        logging.info("Error occurred during the vk memes pagination: %s" % error)
 
                 # отправляем картинки с подписью
                 if x[1] == "photo_with_caption":
-                    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-                    bot.send_photo(call.message.chat.id, photo=x[2], caption=x[0], disable_notification=True,
-                                   reply_markup=markup)
+                    try:
+                        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+                        bot.send_photo(call.message.chat.id, photo=x[2], caption=x[0],
+                                       disable_notification=True, reply_markup=markup)
+                    except Exception as error:
+                        logging.info("Error occurred during the vk memes pagination: %s" % error)
 
                 # отправляем просто гифки
                 if x[1] == "gifs_no_caption":
-                    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-                    bot.send_document(call.message.chat.id, data=x[2], disable_notification=True, reply_markup=markup)
+                    try:
+                        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+                        bot.send_document(call.message.chat.id, data=x[2],
+                                          disable_notification=True, reply_markup=markup)
+                    except Exception as error:
+                        logging.info("Error occurred during the vk memes pagination: %s" % error)
 
                 # отправляем гифки с подписью
                 if x[1] == "gifs_with_caption":
-                    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-                    bot.send_document(call.message.chat.id, data=x[2], caption=x[0], disable_notification=True,
-                                      reply_markup=markup)
+                    try:
+                        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+                        bot.send_document(call.message.chat.id, data=x[2], caption=x[0],
+                                          disable_notification=True, reply_markup=markup)
+                    except Exception as error:
+                        logging.info("Error occurred during the vk memes pagination: %s" % error)
         except (IndexError, TypeError):
             bot.send_message(chat_id=call.message.chat.id, text=texts(user).ALL_LASTEST_POSTS_DISPLAYED,
                              disable_notification=True, parse_mode="Markdown")
@@ -435,7 +456,7 @@ def subscriptions_menu(message):
             markup = types.InlineKeyboardMarkup()
             to_show = []
             x = 0
-            for item in chunkIt(paginate_sub.get(user), float('%.1f' % len(paginate_sub.get(user))) / 5)[0]:
+            for item in chunk_it(paginate_sub.get(user), float('%.1f' % len(paginate_sub.get(user))) / 5)[0]:
                 x += 1
                 if item[1] is None:
                     heading = "%s. %s\n" % (x, item[0])
@@ -722,7 +743,7 @@ def get_news_by_top_resources(call):
                                                 "FROM news_portals WHERE portal_name = '%s' AND rss_url = '%s' "
                                                 "ORDER BY publish_date DESC" % (resource, rss_url))
     paginate_top_sites[user] = latest_news
-    for news in chunkIt(paginate_top_sites.get(user), float('%.1f' % len(paginate_top_sites.get(user))) / 1)[0]:
+    for news in chunk_it(paginate_top_sites.get(user), float('%.1f' % len(paginate_top_sites.get(user))) / 1)[0]:
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
         row = [types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_sites_%s_%s_%s" % (1, resource, country,
@@ -747,7 +768,7 @@ def get_memes_by_top_vk_groups(call):
     markup = types.InlineKeyboardMarkup()
     row = [types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_memes" % 1)]
     markup.row(*row)
-    for x in chunkIt(paginate_top_memes.get(user), float('%.1f' % len(paginate_top_memes.get(user))) / 1)[0]:
+    for x in chunk_it(paginate_top_memes.get(user), float('%.1f' % len(paginate_top_memes.get(user))) / 1)[0]:
         # x[0] - caption, x[1] - type, x[2] - file_id
         # отправляем просто картинки
         if x[1] == "photo_no_caption":
