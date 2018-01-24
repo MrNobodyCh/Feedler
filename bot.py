@@ -71,7 +71,6 @@ def help_menu(message):
     user = message.chat.id
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=texts(user).SUPPORT_TEAM, url=texts(user).SUPPORT_TEAM_LINK))
-    markup.add(types.InlineKeyboardButton(text=texts(user).DONATE, url='http://www.donationalerts.ru/r/feedler'))
     bot.send_message(message.chat.id, text=texts(user).LIST_OF_COMMANDS, reply_markup=markup, parse_mode="Markdown")
     # botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
@@ -135,7 +134,6 @@ def supported_user(call):
 def donate(message):
     user = message.chat.id
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=texts(user).DONATE, url='http://www.donationalerts.ru/r/feedler'))
     bot.send_message(user, text=texts(user).IF_YOUR_LIKE, reply_markup=markup, parse_mode="Markdown")
     # botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
