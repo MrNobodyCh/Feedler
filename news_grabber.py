@@ -7,6 +7,8 @@ import telebot
 
 from telebot import types
 
+from concurrent.futures import ThreadPoolExecutor
+
 from getters import DBGetter, RssParser, GooGl, texts
 from config import ResourcesSettings, DBSettings, RssSettings, BotSettings
 
@@ -54,64 +56,62 @@ class NewsGrabber(object):
 
 
 def get_news_by_subscriptions(user):
-    users = user
-    for x in users:
-        user_id = x[0]
-        to_send = {}
-        descriptions = {}
-        subscriptions = DBGetter(DBSettings.HOST).get("SELECT subscription, description, latest_date "
-                                                      "FROM users_subscriptions WHERE user_id = %s" % user_id)
-        for sub in subscriptions:
-            subscription = sub[0]
-            description = sub[1]
-            latest_date = sub[2]
-            # берем свежие новости (не больше 10 по каждому ресурсу)
-            latest_news = DBGetter(DBSettings.HOST).get("SELECT DISTINCT ON (news_headline) news_headline, "
-                                                        "news_short_url, news_full_url, publish_date FROM news_portals "
-                                                        "WHERE portal_name = '%s' AND publish_date > %s "
-                                                        "ORDER BY news_headline, news_short_url, news_full_url, "
-                                                        "publish_date" % (subscription, int(latest_date)))
+    user_id = user[0]
+    to_send = {}
+    descriptions = {}
+    subscriptions = DBGetter(DBSettings.HOST).get("SELECT subscription, description, latest_date "
+                                                  "FROM users_subscriptions WHERE user_id = %s" % user_id)
+    for sub in subscriptions:
+        subscription = sub[0]
+        description = sub[1]
+        latest_date = sub[2]
+        # берем свежие новости (не больше 10 по каждому ресурсу)
+        latest_news = DBGetter(DBSettings.HOST).get("SELECT DISTINCT ON (news_headline) news_headline, "
+                                                    "news_short_url, news_full_url, publish_date FROM news_portals "
+                                                    "WHERE portal_name = '%s' AND publish_date > %s "
+                                                    "ORDER BY news_headline, news_short_url, news_full_url, "
+                                                    "publish_date" % (subscription, int(latest_date)))
 
-            if len(latest_news) > 0:
-                sorted_news = sorted(latest_news, key=lambda i: i[3], reverse=True)[:10]
-                to_send.update({subscription: sorted_news})
-                descriptions.update({subscription: description})
-        total_numbering = 0
-        news_count = 0
-        for count in to_send.values():
-            for _ in count:
-                news_count += 1
-        for key, value in to_send.iteritems():
-            to_show = []
-            numbering = 0
-            for news in value:
-                numbering += 1
-                total_numbering += 1
-                if total_numbering != news_count:
-                    to_show.append("\n%s. %s - %s" % (numbering, news[0], news[1]))
-                if total_numbering == news_count:
-                    to_show.append(u"\n%s. %s - %s\n\n%s" % (numbering, news[0], news[1],
-                                                             texts(user_id).ALL_FEEDS_UPDATED))
-            if descriptions.get(key) is None:
-                heading = key
-            else:
-                heading = "%s (%s)" % (key, descriptions.get(key))
-            msg = async_bot.send_message(user_id, disable_web_page_preview=True,
-                                         text=texts(user_id).HERE_IS_LATEST_NEWS % heading + '\n' + ''.join(to_show))
-            result = msg.wait()
-            # check that the user is still active
-            try:
-                logging.info("Send %s new posts for user %s and %s" % (len(value), result.chat.id, key))
-                upd_latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals WHERE "
-                                                                "portal_name = '%s' ORDER BY publish_date "
-                                                                "DESC LIMIT 1" % key)[0][0]
-                DBGetter(DBSettings.HOST).insert("UPDATE users_subscriptions SET latest_date = '%s' "
-                                                 "WHERE subscription = '%s' AND user_id = %s" %
-                                                 (int(upd_latest_date), key, user_id))
-            except Exception as err:
-                logging.info("%s. No active user with user_id: %s and Response Status: %s" % (err, user_id, result))
-                DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = FALSE "
-                                                 "WHERE user_id = '%s'" % int(user_id))
+        if len(latest_news) > 0:
+            sorted_news = sorted(latest_news, key=lambda i: i[3], reverse=True)[:10]
+            to_send.update({subscription: sorted_news})
+            descriptions.update({subscription: description})
+    total_numbering = 0
+    news_count = 0
+    for count in to_send.values():
+        for _ in count:
+            news_count += 1
+    for key, value in to_send.iteritems():
+        to_show = []
+        numbering = 0
+        for news in value:
+            numbering += 1
+            total_numbering += 1
+            if total_numbering != news_count:
+                to_show.append("\n%s. %s - %s" % (numbering, news[0], news[1]))
+            if total_numbering == news_count:
+                to_show.append(u"\n%s. %s - %s\n\n%s" % (numbering, news[0], news[1],
+                                                         texts(user_id).ALL_FEEDS_UPDATED))
+        if descriptions.get(key) is None:
+            heading = key
+        else:
+            heading = "%s (%s)" % (key, descriptions.get(key))
+        msg = async_bot.send_message(user_id, disable_web_page_preview=True,
+                                     text=texts(user_id).HERE_IS_LATEST_NEWS % heading + '\n' + ''.join(to_show))
+        result = msg.wait()
+        # check that the user is still active
+        try:
+            logging.info("Send %s new posts for user %s and %s" % (len(value), result.chat.id, key))
+            upd_latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals WHERE "
+                                                            "portal_name = '%s' ORDER BY publish_date "
+                                                            "DESC LIMIT 1" % key)[0][0]
+            DBGetter(DBSettings.HOST).insert("UPDATE users_subscriptions SET latest_date = '%s' "
+                                             "WHERE subscription = '%s' AND user_id = %s" %
+                                             (int(upd_latest_date), key, user_id))
+        except Exception as err:
+            logging.info("%s. No active user with user_id: %s and Response Status: %s" % (err, user_id, result))
+            DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = FALSE "
+                                             "WHERE user_id = '%s'" % int(user_id))
 
 
 def send_latest_news_to_channel():
@@ -155,13 +155,15 @@ def send_latest_news_to_channel():
     reminder.wait()
 
 
-# update resources for which there are subscriptions
-resources = DBGetter(DBSettings.HOST).get("SELECT * FROM (SELECT DISTINCT users_subscriptions.subscription "
-                                          "FROM users_subscriptions, users_language "
-                                          "WHERE users_language.user_id = users_subscriptions.user_id "
-                                          "AND users_language.active_status = TRUE "
-                                          "ORDER BY users_subscriptions.subscription) AS tmp")
-for resource in resources:
+subscriptions_resources = DBGetter(DBSettings.HOST).get("SELECT * FROM (SELECT DISTINCT "
+                                                        "users_subscriptions.subscription "
+                                                        "FROM users_subscriptions, users_language "
+                                                        "WHERE users_language.user_id = users_subscriptions.user_id "
+                                                        "AND users_language.active_status = TRUE "
+                                                        "ORDER BY users_subscriptions.subscription) AS tmp")
+
+
+def subscriptions_updater(resource):
     if resource[0] in ResourcesSettings.RESOURCES:
         for k, v in ResourcesSettings(resource[0]).get_categories().iteritems():
             resource_url = RssSettings("http://" + resource[0]).get_full_rss_url() % v
@@ -185,23 +187,32 @@ for resource in resources:
             logging.info("%s during processing the resource %s" % (e, resource[0]))
             pass
 
-# send the latest news to subscribers with active_status = true
+# update resources for which there are subscriptions
+with ThreadPoolExecutor(10) as executor:
+    for _1 in executor.map(subscriptions_updater, subscriptions_resources):
+        pass
+
+
 send_to_users = DBGetter(DBSettings.HOST).get("SELECT * FROM (SELECT DISTINCT users_subscriptions.user_id FROM "
                                               "users_subscriptions, users_language WHERE "
                                               "users_language.user_id = users_subscriptions.user_id AND "
                                               "users_language.active_status = TRUE) AS tmp")
-get_news_by_subscriptions(send_to_users)
 
-# update resources from the top-5 section
-for resource in ResourcesSettings.RESOURCES:
-    if len([item for item in resources if item[0] == resource]) > 0:
+# send the latest news to subscribers with active_status = true
+with ThreadPoolExecutor(10) as executor:
+    for _2 in executor.map(get_news_by_subscriptions, send_to_users):
+        pass
+
+
+def top_updater(top_resource):
+    if len([item for item in subscriptions_resources if item[0] == top_resource]) > 0:
         pass
     else:
-        for a, b in ResourcesSettings(resource).get_categories().iteritems():
-            resource_url = (RssSettings("http://" + resource).get_full_rss_url() % b)
+        for a, b in ResourcesSettings(top_resource).get_categories().iteritems():
+            resource_url = (RssSettings("http://" + top_resource).get_full_rss_url() % b)
             try:
                 requests.get(resource_url, timeout=10)
-                NewsGrabber(resource_url).get_news(resource)
+                NewsGrabber(resource_url).get_news(top_resource)
             except requests.exceptions.Timeout as e:
                 logging.info("%s during processing the resource %s" % (e, resource_url))
                 pass
@@ -209,4 +220,10 @@ for resource in ResourcesSettings.RESOURCES:
                 logging.info("%s during processing the resource %s" % (e, resource_url))
                 pass
 
+# update resources from the top-5 section
+with ThreadPoolExecutor(10) as executor:
+    for _3 in executor.map(top_updater, ResourcesSettings.RESOURCES):
+        pass
+
+# send news by the top resources to the channel
 send_latest_news_to_channel()
