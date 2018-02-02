@@ -210,8 +210,8 @@ class ResourcesSettings(object):
         if self.resource == "censor.net.ua":
             return {"Все новости_%s" % self.resource: "news_ru",
                     "Резонанс_%s" % self.resource: "resonance_ru",
-                    "Фоторепортажи_%s" % self.resource: "photonews_ru",
-                    "Видео_%s" % self.resource: "videonews_ru",
+                    "Фоторепортажи_%s" % self.resource: "photo_news_ru",
+                    "Видео_%s" % self.resource: "video_news_ru",
                     "События_%s" % self.resource: "events_ru",
                     "Анектоды_%s" % self.resource: "jokes_ru",
                     "Форум_%s" % self.resource: "forum_ru"}
