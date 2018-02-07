@@ -39,7 +39,7 @@ class NewsGrabber(object):
                       "news_full_url, publish_date) VALUES (%s, %s, %s, %s, %s, %s) "
                 # news[0].replace("&nbsp;", " ") -- onliner иногда добавляет &nbsp; в конец заголовка
                 DBGetter(DBSettings.HOST).insert(sql, (portal_name, self.rss_url, news[0].replace("&nbsp;", " "),
-                                                       GooGl().short_link(news[1]), news[1], int(news[2])))
+                                                       GooGl(news[1]).short_link(), news[1], int(news[2])))
                 logging.info("Inserting new post with url: %s" % news[1])
             if check_exists > 0:
                 pass

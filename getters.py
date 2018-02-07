@@ -1,29 +1,24 @@
 # -*- coding: utf-8 -*-
 import time
-import json
-import requests
+import urllib2
 
 import psycopg2
 import feedparser
 
 from feedfinder2 import find_feeds
 
-from config import APISettings, DBSettings
+from config import DBSettings
 
 
 class GooGl:
-    def __init__(self):
-        self.access_token = APISettings.GOOGL_TOKEN
+    def __init__(self, long_link):
+        self.long_link = long_link
 
-    def short_link(self, long_link):
-        post_url = 'https://www.googleapis.com/urlshortener/v1/url?key=%s' % self.access_token
-        payload = {'longUrl': long_link}
-        headers = {'content-type': 'application/json'}
-        r = requests.post(post_url, data=json.dumps(payload), headers=headers)
-        try:
-            return r.json()["id"]
-        except KeyError:
-            return long_link
+    def short_link(self):
+        fetcher = urllib2.urlopen(
+            'https://clck.ru/--?url=' +
+            self.long_link)
+        return fetcher.read()
 
 
 class RssParser(object):
