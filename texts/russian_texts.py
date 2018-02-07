@@ -87,3 +87,4 @@ LIST_OF_COMMANDS = "*Вместо главного меню, Вы можете �
                    "*Etherium:* 0x996D53164F64C5c5C07D1AFD8C5b87f0fCd6e396"
 SUPPORT_TEAM_LINK = "https://t.me/joinchat/GO9Jew3ZH_-yj3yUyd5biA"
 SUPPORT_TEAM = u"\U0001F6E0 Служба поддержки"
+LEARN_MORE = "Подробнее"

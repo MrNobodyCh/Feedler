@@ -88,15 +88,17 @@ def get_news_by_subscriptions(user):
             numbering += 1
             total_numbering += 1
             if total_numbering != news_count:
-                to_show.append("\n%s. %s - %s" % (numbering, news[0], news[1]))
+                to_show.append('\n%s. %s - <a href="%s">%s</a>' % (numbering, news[0], news[1],
+                                                                   texts(user_id).LEARN_MORE))
             if total_numbering == news_count:
-                to_show.append(u"\n%s. %s - %s\n\n%s" % (numbering, news[0], news[1],
-                                                         texts(user_id).ALL_FEEDS_UPDATED))
+                to_show.append(u'\n%s. %s - <a href="%s">%s</a>\n\n%s' % (numbering, news[0], news[1],
+                                                                          texts(user_id).LEARN_MORE,
+                                                                          texts(user_id).ALL_FEEDS_UPDATED))
         if descriptions.get(key) is None:
             heading = key
         else:
             heading = "%s (%s)" % (key, descriptions.get(key))
-        msg = async_bot.send_message(user_id, disable_web_page_preview=True,
+        msg = async_bot.send_message(user_id, disable_web_page_preview=True, parse_mode="HTML",
                                      text=texts(user_id).HERE_IS_LATEST_NEWS % heading + '\n' + ''.join(to_show))
         result = msg.wait()
         # check that the user is still active

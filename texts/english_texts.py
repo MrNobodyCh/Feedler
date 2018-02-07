@@ -90,3 +90,4 @@ LIST_OF_COMMANDS = "*Instead of the main menu, you can use the following command
                    "*Etherium:* 0x996D53164F64C5c5C07D1AFD8C5b87f0fCd6e396"
 SUPPORT_TEAM_LINK = "https://t.me/joinchat/GO9Jewvuaeq7cifPJdLrgA"
 SUPPORT_TEAM = u"\U0001F6E0 Support team"
+LEARN_MORE = "Read More"
