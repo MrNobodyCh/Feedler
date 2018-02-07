@@ -541,7 +541,7 @@ def subscribe_unsubscribe_user(message):
                             markup = types.InlineKeyboardMarkup()
                             markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
                             bot.send_message(chat_id=user, text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' +
-                                             "%s\n%s" % (news[0], GooGl(news[1]).short_link()),
+                                             "%s\n%s" % (news[0], GooGl().short_link(news[1])),
                                              disable_notification=True, reply_markup=markup)
                     except Exception as error:
                         logging.info("%s: Cannot get the latest news from resource: %s" % (error, resource_name))
