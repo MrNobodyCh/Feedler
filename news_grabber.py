@@ -111,9 +111,16 @@ def get_news_by_subscriptions(user):
                                              "WHERE subscription = '%s' AND user_id = %s" %
                                              (int(upd_latest_date), key, user_id))
         except Exception as err:
-            logging.info("%s. No active user with user_id: %s and Response Status: %s" % (err, user_id, result))
-            DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = FALSE "
-                                             "WHERE user_id = '%s'" % int(user_id))
+            if result[1][0] == 'A request to the Telegram API was unsuccessful. ' \
+                               'The server returned HTTP 403 Forbidden. ' \
+                               'Response body:\n[{"ok":false,"error_code":403,"description":' \
+                               '"Forbidden: bot was blocked by the user"}]':
+                logging.info("%s. No active user with user_id: %s and Response Status: %s" % (err, user_id, result))
+                DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = FALSE "
+                                                 "WHERE user_id = '%s'" % int(user_id))
+            else:
+                logging.info("Some problems during the message sending to the user %s: %s" % (user_id, result))
+                pass
 
 
 def send_latest_news_to_channel():
