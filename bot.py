@@ -7,7 +7,7 @@ import telebot
 
 from telebot import types
 
-from getters import RssFinder, RssParser, DBGetter, texts, GooGl
+from getters import RssFinder, RssParser, DBGetter, texts
 from config import BotSettings, ResourcesSettings, RssSettings, DBSettings
 
 reload(sys)
@@ -350,7 +350,7 @@ def pagination_worker(call):
         try:
             for news in chunk_it(paginate_top_sites.get(user),
                                  float('%.1f' % len(paginate_top_sites.get(user))) / 1)[int(call.data.split("_")[1])]:
-                markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
+                markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
                 row = [types.InlineKeyboardButton(u"\u2B05", callback_data="<<_%s_sites_%s_%s_%s"
                                                                            % (int(call.data.split("_")[1]) - 1,
                                                                               call.data.split("_")[3],
@@ -364,7 +364,8 @@ def pagination_worker(call):
                 markup.row(*row)
                 try:
                     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                          text="%s\n%s" % (news[0], news[1]), reply_markup=markup)
+                                          text='%s\n<a href="%s">%s</a>' % (news[0], news[1], texts(user).LEARN_MORE),
+                                          reply_markup=markup, parse_mode="HTML")
                 except Exception as error:
                     logging.info("Error occurred during the top sites news pagination: %s" % error)
         except (IndexError, TypeError):
@@ -518,7 +519,7 @@ def subscribe_unsubscribe_user(message):
                       "WHERE user_id = %s AND subscription= %s"
                 DBGetter(DBSettings.HOST).insert(sql, (description, latest_date, user, resource_name))
                 # send latest news from rss feed
-                latest_news_from_db = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_short_url, "
+                latest_news_from_db = DBGetter(DBSettings.HOST).get("SELECT news_headline, "
                                                                     "news_full_url FROM news_portals "
                                                                     "WHERE rss_url = '%s' ORDER BY publish_date "
                                                                     "DESC" % resource_name)[:1]
@@ -529,11 +530,11 @@ def subscribe_unsubscribe_user(message):
                 if latest_news_from_db > 0:
                     for news in latest_news_from_db:
                         markup = types.InlineKeyboardMarkup()
-                        markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
+                        markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
                         bot.send_message(chat_id=user,
-                                         text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' + "%s\n%s"
-                                                                                                   % (news[0], news[1]),
-                                         disable_notification=True, reply_markup=markup)
+                                         text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' +
+                                         '%s\n<a href="%s">%s</a>' % (news[0], news[1], texts(user).LEARN_MORE),
+                                         disable_notification=True, reply_markup=markup, parse_mode="HTML")
                 if len(latest_news_from_db) == 0:
                     try:
                         latest_news_from_http = RssParser(str(resource_name)).get_news_for_known_resource()[:1]
@@ -541,8 +542,8 @@ def subscribe_unsubscribe_user(message):
                             markup = types.InlineKeyboardMarkup()
                             markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
                             bot.send_message(chat_id=user, text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' +
-                                             "%s\n%s" % (news[0], GooGl().short_link(news[1])),
-                                             disable_notification=True, reply_markup=markup)
+                                             '%s\n<a href="%s">%s</a>' % (news[0], news[1], texts(user).LEARN_MORE),
+                                             disable_notification=True, reply_markup=markup, parse_mode="HTML")
                     except Exception as error:
                         logging.info("%s: Cannot get the latest news from resource: %s" % (error, resource_name))
                         pass
@@ -737,18 +738,19 @@ def get_news_by_top_resources(call):
             category_name = k.split('_')[0]
             bot.send_message(call.message.chat.id,
                              text=texts(user).LATEST_NEWS % (resource, category_name), parse_mode="Markdown")
-    latest_news = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_short_url, news_full_url "
+    latest_news = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_full_url "
                                                 "FROM news_portals WHERE portal_name = '%s' AND rss_url = '%s' "
                                                 "ORDER BY publish_date DESC" % (resource, rss_url))
     paginate_top_sites[user] = latest_news
     for news in chunk_it(paginate_top_sites.get(user), float('%.1f' % len(paginate_top_sites.get(user))) / 1)[0]:
         markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
+        markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
         row = [types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_sites_%s_%s_%s" % (1, resource, country,
                                                                                              category_name))]
         markup.row(*row)
-        bot.send_message(chat_id=call.message.chat.id, text="%s\n%s" % (news[0], news[1]),
-                         disable_notification=True, reply_markup=markup)
+        bot.send_message(chat_id=call.message.chat.id, text='%s\n<a href="%s">%s</a>' % (news[0], news[1],
+                                                                                         texts(user).LEARN_MORE),
+                         disable_notification=True, reply_markup=markup, parse_mode="HTML")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in str(ResourcesSettings.VK_GROUPS_IDS.values()))

@@ -9,7 +9,7 @@ from telebot import types
 
 from concurrent.futures import ThreadPoolExecutor
 
-from getters import DBGetter, RssParser, GooGl, texts
+from getters import DBGetter, RssParser, texts
 from config import ResourcesSettings, DBSettings, RssSettings, BotSettings
 
 reload(sys)
@@ -35,11 +35,11 @@ class NewsGrabber(object):
                                                          "AND rss_url = '%s'"
                                                          % (portal_name, news[1], self.rss_url))[0][0]
             if check_exists == 0:
-                sql = "INSERT INTO news_portals (portal_name, rss_url, news_headline, news_short_url, " \
-                      "news_full_url, publish_date) VALUES (%s, %s, %s, %s, %s, %s) "
+                sql = "INSERT INTO news_portals (portal_name, rss_url, news_headline, " \
+                      "news_full_url, publish_date) VALUES (%s, %s, %s, %s, %s) "
                 # news[0].replace("&nbsp;", " ") -- onliner иногда добавляет &nbsp; в конец заголовка
                 DBGetter(DBSettings.HOST).insert(sql, (portal_name, self.rss_url, news[0].replace("&nbsp;", " "),
-                                                       GooGl().short_link(news[1]), news[1], int(news[2])))
+                                                       news[1], int(news[2])))
                 logging.info("Inserting new post with url: %s" % news[1])
             if check_exists > 0:
                 pass
@@ -67,13 +67,13 @@ def get_news_by_subscriptions(user):
         latest_date = sub[2]
         # берем свежие новости (не больше 10 по каждому ресурсу)
         latest_news = DBGetter(DBSettings.HOST).get("SELECT DISTINCT ON (news_headline) news_headline, "
-                                                    "news_short_url, news_full_url, publish_date FROM news_portals "
+                                                    "news_full_url, publish_date FROM news_portals "
                                                     "WHERE portal_name = '%s' AND publish_date > %s "
-                                                    "ORDER BY news_headline, news_short_url, news_full_url, "
+                                                    "ORDER BY news_headline, news_full_url, "
                                                     "publish_date" % (subscription, int(latest_date)))
 
         if len(latest_news) > 0:
-            sorted_news = sorted(latest_news, key=lambda i: i[3], reverse=True)[:10]
+            sorted_news = sorted(latest_news, key=lambda i: i[2], reverse=True)[:10]
             to_send.update({subscription: sorted_news})
             descriptions.update({subscription: description})
     total_numbering = 0
@@ -124,9 +124,9 @@ def get_news_by_subscriptions(user):
 
 
 def send_latest_news_to_channel():
-    channel_news = DBGetter(DBSettings.HOST).get("SELECT DISTINCT ON (news_short_url) * FROM news_portals "
+    channel_news = DBGetter(DBSettings.HOST).get("SELECT DISTINCT ON (news_full_url) * FROM news_portals "
                                                  "WHERE portal_name in (%s) AND send_to_channel = FALSE "
-                                                 "ORDER BY news_short_url, publish_date DESC;"
+                                                 "ORDER BY news_full_url, publish_date DESC;"
                                                  % str(ResourcesSettings.RESOURCES)[1:-1])
     logging.info("Starting send %s items to the channel" % len(channel_news))
     for news in channel_news:
@@ -142,14 +142,14 @@ def send_latest_news_to_channel():
             message_text = "#%s\n%s\n%s"
         # send news to the channel
         markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(text=u"\U0001F4F0 Read More", url=news[4]))
+        markup.add(types.InlineKeyboardButton(text=u"\U0001F4F0 Read More", url=news[3]))
         msg = async_bot.send_message(chat_id="@the_latestnews",
                                      text=message_text % (news[0].replace(".", "_"), news[2], news[3]),
                                      disable_notification=True, reply_markup=markup)
         msg.wait()
         # mark send_to_channel == true
         DBGetter(DBSettings.HOST).insert("UPDATE news_portals SET send_to_channel = TRUE "
-                                         "WHERE news_short_url = '%s'" % news[3])
+                                         "WHERE news_full_url = '%s'" % news[3])
     logging.info("Sending to the channel successfully finished. Was sent %s items" % len(channel_news))
     # send reminder about Feedler Bot into the channel
     markup = types.InlineKeyboardMarkup()
