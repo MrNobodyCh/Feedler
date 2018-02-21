@@ -6,7 +6,7 @@ import logging
 import telebot
 
 
-from getters import RssFinder, RssParser, DBGetter, texts, GooGl
+from getters import RssFinder, RssParser, DBGetter, texts
 from config import BotSettings, ResourcesSettings, RssSettings, DBSettings
 
 reload(sys)
@@ -72,7 +72,6 @@ def help_menu(message):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=texts(user).CONNECT_CHANNEL, callback_data="connect_channel"))
     markup.add(types.InlineKeyboardButton(text=texts(user).SUPPORT_TEAM, url=texts(user).SUPPORT_TEAM_LINK))
-    markup.add(types.InlineKeyboardButton(text=texts(user).DONATE, url='http://www.donationalerts.ru/r/feedler'))
     bot.send_message(message.chat.id, text=texts(user).LIST_OF_COMMANDS, reply_markup=markup, parse_mode="Markdown")
     # botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
@@ -167,7 +166,6 @@ def supported_user(call):
 def donate(message):
     user = message.chat.id
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=texts(user).DONATE, url='http://www.donationalerts.ru/r/feedler'))
     bot.send_message(user, text=texts(user).IF_YOUR_LIKE, reply_markup=markup, parse_mode="Markdown")
     # botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
@@ -259,7 +257,7 @@ paginate_top_memes = {}
 paginate_top_sites = {}
 
 
-def chunkIt(seq, num):
+def chunk_it(seq, num):
     avg = len(seq) / float(num)
     out = []
     last = 0.0
@@ -302,7 +300,7 @@ def process_url(message):
                     menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
                     markup = types.InlineKeyboardMarkup()
                     to_show = []
-                    for feed in chunkIt(paginate_rss.get(user), float('%.1f' % len(paginate_rss.get(user))) / 5)[0]:
+                    for feed in chunk_it(paginate_rss.get(user), float('%.1f' % len(paginate_rss.get(user))) / 5)[0]:
                         to_show.append("%s. %s - %s\n" % (str(paginate_rss.get(user).index(feed) + 1),
                                                           str(feed[0]), str(feed[1])))
                     for feed in paginate_rss.get(user):
@@ -334,8 +332,8 @@ def pagination_worker(call):
         to_show = []
         markup = types.InlineKeyboardMarkup()
         try:
-            for feed in chunkIt(paginate_rss.get(user),
-                                float('%.1f' % len(paginate_rss.get(user))) / 5)[int(call.data.split("_")[1])]:
+            for feed in chunk_it(paginate_rss.get(user),
+                                 float('%.1f' % len(paginate_rss.get(user))) / 5)[int(call.data.split("_")[1])]:
                 to_show.append("%s. %s - %s\n" % (str(paginate_rss.get(user).index(feed) + 1),
                                                   str(feed[0]), str(feed[1])))
             row = [types.InlineKeyboardButton(u"\u2B05", callback_data="<<_%s_rss"
@@ -343,9 +341,12 @@ def pagination_worker(call):
                    types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_rss"
                                                                        % (int(call.data.split("_")[1]) + 1))]
             markup.row(*row)
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  text=texts(call.message.chat.id).SELECT_RSS_CHANNEL
-                                  % str(len(paginate_rss.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
+            try:
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                      text=texts(call.message.chat.id).SELECT_RSS_CHANNEL
+                                      % str(len(paginate_rss.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
+            except Exception as error:
+                logging.info("Error occurred during the RSS feeds pagination: %s" % error)
         except (IndexError, TypeError):
             pass
 
@@ -354,8 +355,8 @@ def pagination_worker(call):
         to_show = []
         markup = types.InlineKeyboardMarkup()
         try:
-            for item in chunkIt(paginate_sub.get(user),
-                                float('%.1f' % len(paginate_sub.get(user))) / 5)[int(call.data.split("_")[1])]:
+            for item in chunk_it(paginate_sub.get(user),
+                                 float('%.1f' % len(paginate_sub.get(user))) / 5)[int(call.data.split("_")[1])]:
                 if item[1] is None:
                     heading = "%s. %s\n" % (str(paginate_sub.get(user).index(item) + 1), item[0])
                 else:
@@ -366,9 +367,12 @@ def pagination_worker(call):
                    types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_sub"
                                                                        % (int(call.data.split("_")[1]) + 1))]
             markup.row(*row)
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  text=texts(call.message.chat.id).LIST_OF_SUBSCRIPTIONS %
-                                  str(len(paginate_sub.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
+            try:
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                      text=texts(call.message.chat.id).LIST_OF_SUBSCRIPTIONS %
+                                      str(len(paginate_sub.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
+            except Exception as error:
+                logging.info("Error occurred during the user subscriptions pagination: %s" % error)
         except (IndexError, TypeError):
             pass
 
@@ -376,9 +380,9 @@ def pagination_worker(call):
     if call.data.split("_")[2] == "sites":
         markup = types.InlineKeyboardMarkup()
         try:
-            for news in chunkIt(paginate_top_sites.get(user),
-                                float('%.1f' % len(paginate_top_sites.get(user))) / 1)[int(call.data.split("_")[1])]:
-                markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
+            for news in chunk_it(paginate_top_sites.get(user),
+                                 float('%.1f' % len(paginate_top_sites.get(user))) / 1)[int(call.data.split("_")[1])]:
+                markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
                 row = [types.InlineKeyboardButton(u"\u2B05", callback_data="<<_%s_sites_%s_%s_%s"
                                                                            % (int(call.data.split("_")[1]) - 1,
                                                                               call.data.split("_")[3],
@@ -390,8 +394,12 @@ def pagination_worker(call):
                                                                               call.data.split("_")[4],
                                                                               call.data.split("_")[5]))]
                 markup.row(*row)
-                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                      text="%s\n%s" % (news[0], news[1]), reply_markup=markup)
+                try:
+                    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                          text='%s\n<a href="%s">%s</a>' % (news[0], news[1], texts(user).LEARN_MORE),
+                                          reply_markup=markup, parse_mode="HTML")
+                except Exception as error:
+                    logging.info("Error occurred during the top sites news pagination: %s" % error)
         except (IndexError, TypeError):
             markup = types.InlineKeyboardMarkup()
             markup.add(types.InlineKeyboardButton(text=texts(user).CHOOSE_ANOTHER_SECTION,
@@ -408,30 +416,43 @@ def pagination_worker(call):
                types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_memes" % (int(call.data.split("_")[1]) + 1))]
         markup.row(*row)
         try:
-            for x in chunkIt(paginate_top_memes.get(user),
-                             float('%.1f' % len(paginate_top_memes.get(user))) / 1)[int(call.data.split("_")[1])]:
+            for x in chunk_it(paginate_top_memes.get(user),
+                              float('%.1f' % len(paginate_top_memes.get(user))) / 1)[int(call.data.split("_")[1])]:
                 # x[0] - caption, x[1] - type, x[2] - file_id
                 # отправляем просто картинки
                 if x[1] == "photo_no_caption":
-                    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-                    bot.send_photo(call.message.chat.id, photo=x[2], disable_notification=True, reply_markup=markup)
+                    try:
+                        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+                        bot.send_photo(call.message.chat.id, photo=x[2], disable_notification=True, reply_markup=markup)
+                    except Exception as error:
+                        logging.info("Error occurred during the vk memes pagination: %s" % error)
 
                 # отправляем картинки с подписью
                 if x[1] == "photo_with_caption":
-                    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-                    bot.send_photo(call.message.chat.id, photo=x[2], caption=x[0], disable_notification=True,
-                                   reply_markup=markup)
+                    try:
+                        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+                        bot.send_photo(call.message.chat.id, photo=x[2], caption=x[0],
+                                       disable_notification=True, reply_markup=markup)
+                    except Exception as error:
+                        logging.info("Error occurred during the vk memes pagination: %s" % error)
 
                 # отправляем просто гифки
                 if x[1] == "gifs_no_caption":
-                    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-                    bot.send_document(call.message.chat.id, data=x[2], disable_notification=True, reply_markup=markup)
+                    try:
+                        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+                        bot.send_document(call.message.chat.id, data=x[2],
+                                          disable_notification=True, reply_markup=markup)
+                    except Exception as error:
+                        logging.info("Error occurred during the vk memes pagination: %s" % error)
 
                 # отправляем гифки с подписью
                 if x[1] == "gifs_with_caption":
-                    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-                    bot.send_document(call.message.chat.id, data=x[2], caption=x[0], disable_notification=True,
-                                      reply_markup=markup)
+                    try:
+                        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+                        bot.send_document(call.message.chat.id, data=x[2], caption=x[0],
+                                          disable_notification=True, reply_markup=markup)
+                    except Exception as error:
+                        logging.info("Error occurred during the vk memes pagination: %s" % error)
         except (IndexError, TypeError):
             bot.send_message(chat_id=call.message.chat.id, text=texts(user).ALL_LASTEST_POSTS_DISPLAYED,
                              disable_notification=True, parse_mode="Markdown")
@@ -466,7 +487,7 @@ def subscriptions_menu(message):
             markup = types.InlineKeyboardMarkup()
             to_show = []
             x = 0
-            for item in chunkIt(paginate_sub.get(user), float('%.1f' % len(paginate_sub.get(user))) / 5)[0]:
+            for item in chunk_it(paginate_sub.get(user), float('%.1f' % len(paginate_sub.get(user))) / 5)[0]:
                 x += 1
                 if item[1] is None:
                     heading = "%s. %s\n" % (x, item[0])
@@ -497,95 +518,117 @@ def subscriptions_menu(message):
 def subscribe_unsubscribe_user(message):
     user = message.chat.id
     # subscribe/unsubscribe to unknown resources
+    # subscription process
     if message.text.split()[1] == u"\U0001F4E8":
-        resource_name = message.text.split()[2]
-        check_subscribe = DBGetter(DBSettings.HOST).get("SELECT count(*) FROM users_subscriptions "
-                                                        "WHERE user_id = '%s' AND subscription = '%s'"
-                                                        % (int(user), resource_name))[0][0]
-        if check_subscribe > 0:
-            bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
-        else:
-            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
-            # add resource for current user
-            sql = "INSERT INTO users_subscriptions (user_id, subscription, " \
-                  "description, latest_date) VALUES (%s, %s, %s, %s)"
-            DBGetter(DBSettings.HOST).insert(sql, (user, resource_name, None, int(time.time())))
-            try:
-                description = RssFinder(resource_name).find_feeds()[0][0]
-            except Exception as error:
-                logging.info("%s: Not found description for %s" % (error, resource_name))
-                description = None
-            try:
-                latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
-                                                            "WHERE portal_name = '%s' OR rss_url = '%s' "
-                                                            "ORDER BY publish_date DESC"
-                                                            % (resource_name, resource_name))[:1][0][0]
-            except Exception as error:
-                logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
-                latest_date = int(time.time())
-            # update description and latest date if it was found
-            sql = "UPDATE users_subscriptions SET description = %s, latest_date = %s " \
-                  "WHERE user_id = %s AND subscription= %s"
-            DBGetter(DBSettings.HOST).insert(sql, (description, latest_date, user, resource_name))
-            # send latest news from rss feed
-            latest_news_from_db = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_short_url, news_full_url "
-                                                                "FROM news_portals WHERE rss_url = '%s' "
-                                                                "ORDER BY publish_date DESC" % resource_name)[:1]
-            if description is None:
-                heading = resource_name
+        try:
+            resource_name = message.text.split()[2]
+            check_subscribe = DBGetter(DBSettings.HOST).get("SELECT count(*) FROM users_subscriptions "
+                                                            "WHERE user_id = '%s' AND subscription = '%s'"
+                                                            % (int(user), resource_name))[0][0]
+            if check_subscribe > 0:
+                bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
             else:
-                heading = "%s (%s)" % (resource_name, description)
-            if latest_news_from_db > 0:
-                for news in latest_news_from_db:
-                    markup = types.InlineKeyboardMarkup()
-                    markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
-                    bot.send_message(chat_id=user,
-                                     text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' + "%s\n%s"
-                                                                                               % (news[0], news[1]),
-                                     disable_notification=True, reply_markup=markup)
-            if len(latest_news_from_db) == 0:
+                bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
+                # add resource for current user
+                sql = "INSERT INTO users_subscriptions (user_id, subscription, " \
+                      "description, latest_date) VALUES (%s, %s, %s, %s)"
+                DBGetter(DBSettings.HOST).insert(sql, (user, resource_name, None, int(time.time())))
                 try:
-                    latest_news_from_http = RssParser(str(resource_name)).get_news_for_known_resource()[:1]
-                    for news in latest_news_from_http:
+                    description = RssFinder(resource_name).find_feeds()[0][0]
+                except Exception as error:
+                    logging.info("%s: Not found description for %s" % (error, resource_name))
+                    description = None
+                try:
+                    latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
+                                                                "WHERE portal_name = '%s' OR rss_url = '%s' "
+                                                                "ORDER BY publish_date DESC"
+                                                                % (resource_name, resource_name))[:1][0][0]
+                except Exception as error:
+                    logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
+                    latest_date = int(time.time())
+                # update description and latest date if it was found
+                sql = "UPDATE users_subscriptions SET description = %s, latest_date = %s " \
+                      "WHERE user_id = %s AND subscription= %s"
+                DBGetter(DBSettings.HOST).insert(sql, (description, latest_date, user, resource_name))
+                # send latest news from rss feed
+                latest_news_from_db = DBGetter(DBSettings.HOST).get("SELECT news_headline, "
+                                                                    "news_full_url FROM news_portals "
+                                                                    "WHERE rss_url = '%s' ORDER BY publish_date "
+                                                                    "DESC" % resource_name)[:1]
+                if description is None:
+                    heading = resource_name
+                else:
+                    heading = "%s (%s)" % (resource_name, description)
+                if latest_news_from_db > 0:
+                    for news in latest_news_from_db:
                         markup = types.InlineKeyboardMarkup()
                         markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
-                        bot.send_message(chat_id=user, text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' +
-                                         "%s\n%s" % (news[0], GooGl().short_link(news[1])),
-                                         disable_notification=True, reply_markup=markup)
-                except Exception as error:
-                    logging.info("%s: Cannot get the latest news from resource: %s" % (error, resource_name))
-                    pass
+                        bot.send_message(chat_id=user,
+                                         text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' +
+                                         '%s\n<a href="%s">%s</a>' % (news[0], news[1], texts(user).LEARN_MORE),
+                                         disable_notification=True, reply_markup=markup, parse_mode="HTML")
+                if len(latest_news_from_db) == 0:
+                    try:
+                        latest_news_from_http = RssParser(str(resource_name)).get_news_for_known_resource()[:1]
+                        for news in latest_news_from_http:
+                            markup = types.InlineKeyboardMarkup()
+                            markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
+                            bot.send_message(chat_id=user, text=texts(user).HERE_IS_LATEST_NEWS % heading + '\n\n' +
+                                             '%s\n<a href="%s">%s</a>' % (news[0], news[1], texts(user).LEARN_MORE),
+                                             disable_notification=True, reply_markup=markup, parse_mode="HTML")
+                    except Exception as error:
+                        logging.info("%s: Cannot get the latest news from resource: %s" % (error, resource_name))
+                        pass
+        except IndexError as error:
+            logging.info("%s: Seems like manual input %s" % (error, message.text))
+            pass
 
+    # unsubscription process
     if message.text.split()[1] == u"\u274C":
-        resource_name = message.text.split()[2]
-        DBGetter(DBSettings.HOST).insert("DELETE FROM users_subscriptions WHERE user_id = %s "
-                                         "AND subscription = '%s'" % (user, resource_name))
-        bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_UNSUBSCRIBED % resource_name)
+        try:
+            resource_name = message.text.split()[2]
+            DBGetter(DBSettings.HOST).insert("DELETE FROM users_subscriptions WHERE user_id = %s "
+                                             "AND subscription = '%s'" % (user, resource_name))
+            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_UNSUBSCRIBED % resource_name)
+        except IndexError as error:
+            logging.info("%s: Seems like manual input %s" % (error, message.text))
+            pass
 
     # subscribe/unsubscribe to top resources
+    # subscription process
     if message.text.split()[0] == u"\U0001F4E8":
-        resource_name = message.text.split()[3]
-        check_subscribe = DBGetter(DBSettings.HOST).get("SELECT count(*) FROM users_subscriptions "
-                                                        "WHERE user_id = '%s' AND subscription = '%s'"
-                                                        % (int(user), resource_name))[0][0]
-        if check_subscribe > 0:
-            bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
-        else:
-            try:
-                latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
-                                                            "WHERE portal_name = '%s' ORDER BY publish_date DESC"
-                                                            % '%s' % resource_name)[:1][0][0]
-            except Exception as error:
-                logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
-                latest_date = int(time.time())
-            DBGetter(DBSettings.HOST).insert("INSERT INTO users_subscriptions (user_id, subscription, latest_date) "
-                                             "VALUES (%s, '%s', %s)" % (user, resource_name, latest_date))
-            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
+        try:
+            resource_name = message.text.split()[3]
+            check_subscribe = DBGetter(DBSettings.HOST).get("SELECT count(*) FROM users_subscriptions "
+                                                            "WHERE user_id = '%s' AND subscription = '%s'"
+                                                            % (int(user), resource_name))[0][0]
+            if check_subscribe > 0:
+                bot.send_message(message.chat.id, text=texts(user).ALREADY_SUBSCRIBED_TO % resource_name)
+            else:
+                try:
+                    latest_date = DBGetter(DBSettings.HOST).get("SELECT publish_date FROM news_portals "
+                                                                "WHERE portal_name = '%s' ORDER BY publish_date DESC"
+                                                                % '%s' % resource_name)[:1][0][0]
+                except Exception as error:
+                    logging.info("%s: Not found lastest_date in DB for %s" % (error, resource_name))
+                    latest_date = int(time.time())
+                DBGetter(DBSettings.HOST).insert("INSERT INTO users_subscriptions (user_id, subscription, latest_date) "
+                                                 "VALUES (%s, '%s', %s)" % (user, resource_name, latest_date))
+                bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_SUBSCRIBED % resource_name)
+        except IndexError as error:
+            logging.info("%s: Seems like manual input %s" % (error, message.text))
+            pass
+
+    # unsubscription process
     if message.text.split()[0] == u"\u274C":
-        resource_name = message.text.split()[3]
-        DBGetter(DBSettings.HOST).insert("DELETE FROM users_subscriptions WHERE user_id = %s "
-                                         "AND subscription = '%s'" % (user, resource_name))
-        bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_UNSUBSCRIBED % resource_name)
+        try:
+            resource_name = message.text.split()[3]
+            DBGetter(DBSettings.HOST).insert("DELETE FROM users_subscriptions WHERE user_id = %s "
+                                             "AND subscription = '%s'" % (user, resource_name))
+            bot.send_message(message.chat.id, text=texts(user).SUCCESSFULLY_UNSUBSCRIBED % resource_name)
+        except IndexError as error:
+            logging.info("%s: Seems like manual input %s" % (error, message.text))
+            pass
 
     # botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
@@ -733,18 +776,19 @@ def get_news_by_top_resources(call):
             category_name = k.split('_')[0]
             bot.send_message(call.message.chat.id,
                              text=texts(user).LATEST_NEWS % (resource, category_name), parse_mode="Markdown")
-    latest_news = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_short_url, news_full_url "
+    latest_news = DBGetter(DBSettings.HOST).get("SELECT news_headline, news_full_url "
                                                 "FROM news_portals WHERE portal_name = '%s' AND rss_url = '%s' "
                                                 "ORDER BY publish_date DESC" % (resource, rss_url))
     paginate_top_sites[user] = latest_news
-    for news in chunkIt(paginate_top_sites.get(user), float('%.1f' % len(paginate_top_sites.get(user))) / 1)[0]:
+    for news in chunk_it(paginate_top_sites.get(user), float('%.1f' % len(paginate_top_sites.get(user))) / 1)[0]:
         markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[2]))
+        markup.add(types.InlineKeyboardButton(text=texts(user).READ_MORE, url=news[1]))
         row = [types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_sites_%s_%s_%s" % (1, resource, country,
                                                                                              category_name))]
         markup.row(*row)
-        bot.send_message(chat_id=call.message.chat.id, text="%s\n%s" % (news[0], news[1]),
-                         disable_notification=True, reply_markup=markup)
+        bot.send_message(chat_id=call.message.chat.id, text='%s\n<a href="%s">%s</a>' % (news[0], news[1],
+                                                                                         texts(user).LEARN_MORE),
+                         disable_notification=True, reply_markup=markup, parse_mode="HTML")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in str(ResourcesSettings.VK_GROUPS_IDS.values()))
@@ -762,7 +806,7 @@ def get_memes_by_top_vk_groups(call):
     markup = types.InlineKeyboardMarkup()
     row = [types.InlineKeyboardButton(u"\u27A1", callback_data=">>_%s_memes" % 1)]
     markup.row(*row)
-    for x in chunkIt(paginate_top_memes.get(user), float('%.1f' % len(paginate_top_memes.get(user))) / 1)[0]:
+    for x in chunk_it(paginate_top_memes.get(user), float('%.1f' % len(paginate_top_memes.get(user))) / 1)[0]:
         # x[0] - caption, x[1] - type, x[2] - file_id
         # отправляем просто картинки
         if x[1] == "photo_no_caption":

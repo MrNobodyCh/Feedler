@@ -159,12 +159,9 @@ class ResourcesSettings(object):
         if self.resource == "charter97.org":
             return {"Все Новости_%s" % self.resource: "all",
                     "Политика_%s" % self.resource: "politics",
-                    "Европа_%s" % self.resource: "europa",
                     "Культура_%s" % self.resource: "culture",
-                    "Религия_%s" % self.resource: "religion",
                     "В мире_%s" % self.resource: "world",
-                    "Общество_%s" % self.resource: "society",
-                    "Россия_%s" % self.resource: "russia"}
+                    "Общество_%s" % self.resource: "society"}
 
         if self.resource == "udf.by":
             return {"Политика_%s" % self.resource: "politic",
@@ -213,8 +210,8 @@ class ResourcesSettings(object):
         if self.resource == "censor.net.ua":
             return {"Все новости_%s" % self.resource: "news_ru",
                     "Резонанс_%s" % self.resource: "resonance_ru",
-                    "Фоторепортажи_%s" % self.resource: "photonews_ru",
-                    "Видео_%s" % self.resource: "videonews_ru",
+                    "Фоторепортажи_%s" % self.resource: "photo_news_ru",
+                    "Видео_%s" % self.resource: "video_news_ru",
                     "События_%s" % self.resource: "events_ru",
                     "Анектоды_%s" % self.resource: "jokes_ru",
                     "Форум_%s" % self.resource: "forum_ru"}
