@@ -1,4 +1,4 @@
-pyTelegramBotAPI==3.2.0
+pyTelegramBotAPI==3.5.2
 requests==2.8.1
 telegram==0.0.1
 vk-api==9.0
