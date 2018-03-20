@@ -405,6 +405,7 @@ def pagination_worker(call):
             markup.add(types.InlineKeyboardButton(text=texts(user).CHOOSE_ANOTHER_SECTION,
                                                   callback_data="%s_%s" % (call.data.split("_")[3],
                                                                            call.data.split("_")[4])))
+            bot.answer_callback_query(call.id, text="")
             bot.send_message(chat_id=call.message.chat.id,
                              text=texts(user).ALL_LASTEST_NEWS_DISPLAYED % call.data.split("_")[5],
                              disable_notification=True, reply_markup=markup, parse_mode="Markdown")
