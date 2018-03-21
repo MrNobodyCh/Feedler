@@ -114,6 +114,7 @@ def main_menu(call):
         DBGetter(DBSettings.HOST).insert("UPDATE users_language SET language = 'russian' "
                                          "WHERE user_id = %s" % call.message.chat.id)
         bot.send_message(call.message.chat.id, text=texts(user).CHANGED_LANGUAGE)
+        bot.answer_callback_query(call.id, text="")
     if call.data.split('_')[0] == "english" and call.data.split('_')[1] == "change":
         DBGetter(DBSettings.HOST).insert("UPDATE users_language SET language = 'english' "
                                          "WHERE user_id = %s" % call.message.chat.id)
