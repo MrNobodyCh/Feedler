@@ -1,11 +1,11 @@
-pyTelegramBotAPI==3.2.0
-requests==2.8.1
+pyTelegramBotAPI==3.6.0
+requests==2.18.4
 telegram==0.0.1
 vk-api==9.0
 beautifulsoup4==4.4.1
 feedfinder2==0.0.4
 feedparser==5.2.1
 psycopg2==2.7.3.1
-six==1.9.0
+six==1.11.0
 vk-api==9.0
 futures==3.2.0
