@@ -115,7 +115,7 @@ class ResourcesSettings(object):
                     "Entertainment & Arts_%s" % self.resource: "entertainment_and_arts"}
 
         if self.resource == "news.mail.ru":
-            return {"Главные новости_%s" % self.resource: "main",
+            return {"Главные новости_%s" % self.resource: "",
                     "Политика_%s" % self.resource: "politics",
                     "Экономика_%s" % self.resource: "economics",
                     "Общество_%s" % self.resource: "society",
