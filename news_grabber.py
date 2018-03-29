@@ -55,6 +55,17 @@ class NewsGrabber(object):
             logging.info("Deleted %s news for RSS: %s" % (to_delete, self.rss_url))
 
 
+BLOCK_ERRORS = ['A request to the Telegram API was unsuccessful. '
+                'The server returned HTTP 403 Forbidden. '
+                'Response body:\n[{"ok":false,"error_code":403,"description":'
+                '"Forbidden: bot was blocked by the user"}]',
+
+                'A request to the Telegram API was unsuccessful. '
+                'The server returned HTTP 403 Forbidden. '
+                'Response body:\n[{"ok":false,"error_code":403,"description":'
+                '"Forbidden: bot was kicked from the group chat"}]']
+
+
 def get_news_by_subscriptions(user):
     user_id = user[0]
     to_send = {}
@@ -111,10 +122,7 @@ def get_news_by_subscriptions(user):
                                              "WHERE subscription = '%s' AND user_id = %s" %
                                              (int(upd_latest_date), key, user_id))
         except Exception as err:
-            if result[1][0] == 'A request to the Telegram API was unsuccessful. ' \
-                               'The server returned HTTP 403 Forbidden. ' \
-                               'Response body:\n[{"ok":false,"error_code":403,"description":' \
-                               '"Forbidden: bot was blocked by the user"}]':
+            if result[1][0] in BLOCK_ERRORS:
                 logging.info("%s. No active user with user_id: %s and Response Status: %s" % (err, user_id, result))
                 DBGetter(DBSettings.HOST).insert("UPDATE users_language SET active_status = FALSE "
                                                  "WHERE user_id = '%s'" % int(user_id))
