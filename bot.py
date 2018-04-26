@@ -114,12 +114,12 @@ def main_menu(call):
         DBGetter(DBSettings.HOST).insert("UPDATE users_language SET language = 'russian' "
                                          "WHERE user_id = %s" % call.message.chat.id)
         bot.send_message(call.message.chat.id, text=texts(user).CHANGED_LANGUAGE)
-        bot.answer_callback_query(call.id, text="")
+        bot.answer_callback_query(call.message.chat.id, text="")
     if call.data.split('_')[0] == "english" and call.data.split('_')[1] == "change":
         DBGetter(DBSettings.HOST).insert("UPDATE users_language SET language = 'english' "
                                          "WHERE user_id = %s" % call.message.chat.id)
         bot.send_message(call.message.chat.id, text=texts(user).CHANGED_LANGUAGE)
-        bot.answer_callback_query(call.id, text="")
+        bot.answer_callback_query(call.message.chat.id, text="")
     main_menu_worker(call.message)
 
 
@@ -129,7 +129,7 @@ def supported_user(call):
     DBGetter(DBSettings.HOST).insert("UPDATE users_language SET supported = TRUE "
                                      "WHERE user_id = %s" % call.message.chat.id)
     bot.send_message(call.message.chat.id, text=texts(user).GOT_IT)
-    bot.answer_callback_query(call.id, text="")
+    bot.answer_callback_query(call.message.chat.id, text="")
     # botan.track(APISettings.BOTAN_TOKEN, call.message.chat.id, None, call.data)
 
 
@@ -316,13 +316,13 @@ def pagination_worker(call):
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                       text=texts(call.message.chat.id).SELECT_RSS_CHANNEL
                                       % str(len(paginate_rss.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
-                bot.answer_callback_query(call.id, text="")
+                bot.answer_callback_query(call.message.chat.id, text="")
             except Exception as error:
                 logging.info("Error occurred during the RSS feeds pagination: %s" % error)
-                bot.answer_callback_query(call.id, text="")
+                bot.answer_callback_query(call.message.chat.id, text="")
         except (IndexError, TypeError):
             pass
-            bot.answer_callback_query(call.id, text="")
+            bot.answer_callback_query(call.message.chat.id, text="")
 
     # pagination for user subscriptions
     if call.data.split("_")[2] == "sub":
@@ -345,13 +345,13 @@ def pagination_worker(call):
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                       text=texts(call.message.chat.id).LIST_OF_SUBSCRIPTIONS %
                                       str(len(paginate_sub.get(user))) + '\n' + ''.join(to_show), reply_markup=markup)
-                bot.answer_callback_query(call.id, text="")
+                bot.answer_callback_query(call.message.chat.id, text="")
             except Exception as error:
                 logging.info("Error occurred during the user subscriptions pagination: %s" % error)
-                bot.answer_callback_query(call.id, text="")
+                bot.answer_callback_query(call.message.chat.id, text="")
         except (IndexError, TypeError):
             pass
-            bot.answer_callback_query(call.id, text="")
+            bot.answer_callback_query(call.message.chat.id, text="")
 
     # pagination for top sites
     if call.data.split("_")[2] == "sites":
@@ -375,10 +375,10 @@ def pagination_worker(call):
                     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                           text='%s\n<a href="%s">%s</a>' % (news[0], news[1], texts(user).LEARN_MORE),
                                           reply_markup=markup, parse_mode="HTML")
-                    bot.answer_callback_query(call.id, text="")
+                    bot.answer_callback_query(call.message.chat.id, text="")
                 except Exception as error:
                     logging.info("Error occurred during the top sites news pagination: %s" % error)
-                    bot.answer_callback_query(call.id, text="")
+                    bot.answer_callback_query(call.message.chat.id, text="")
         except (IndexError, TypeError):
             markup = types.InlineKeyboardMarkup()
             markup.add(types.InlineKeyboardButton(text=texts(user).CHOOSE_ANOTHER_SECTION,
@@ -387,7 +387,7 @@ def pagination_worker(call):
             bot.send_message(chat_id=call.message.chat.id,
                              text=texts(user).ALL_LASTEST_NEWS_DISPLAYED % call.data.split("_")[5],
                              disable_notification=True, reply_markup=markup, parse_mode="Markdown")
-            bot.answer_callback_query(call.id, text="")
+            bot.answer_callback_query(call.message.chat.id, text="")
 
     # pagination for vk memes (pics, gifs)
     if call.data.split("_")[2] == "memes":
@@ -404,10 +404,10 @@ def pagination_worker(call):
                     try:
                         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
                         bot.send_photo(call.message.chat.id, photo=x[2], disable_notification=True, reply_markup=markup)
-                        bot.answer_callback_query(call.id, text="")
+                        bot.answer_callback_query(call.message.chat.id, text="")
                     except Exception as error:
                         logging.info("Error occurred during the vk memes pagination: %s" % error)
-                        bot.answer_callback_query(call.id, text="")
+                        bot.answer_callback_query(call.message.chat.id, text="")
 
                 # отправляем картинки с подписью
                 if x[1] == "photo_with_caption":
@@ -415,10 +415,10 @@ def pagination_worker(call):
                         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
                         bot.send_photo(call.message.chat.id, photo=x[2], caption=x[0],
                                        disable_notification=True, reply_markup=markup)
-                        bot.answer_callback_query(call.id, text="")
+                        bot.answer_callback_query(call.message.chat.id, text="")
                     except Exception as error:
                         logging.info("Error occurred during the vk memes pagination: %s" % error)
-                        bot.answer_callback_query(call.id, text="")
+                        bot.answer_callback_query(call.message.chat.id, text="")
 
                 # отправляем просто гифки
                 if x[1] == "gifs_no_caption":
@@ -426,10 +426,10 @@ def pagination_worker(call):
                         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
                         bot.send_document(call.message.chat.id, data=x[2],
                                           disable_notification=True, reply_markup=markup)
-                        bot.answer_callback_query(call.id, text="")
+                        bot.answer_callback_query(call.message.chat.id, text="")
                     except Exception as error:
                         logging.info("Error occurred during the vk memes pagination: %s" % error)
-                        bot.answer_callback_query(call.id, text="")
+                        bot.answer_callback_query(call.message.chat.id, text="")
 
                 # отправляем гифки с подписью
                 if x[1] == "gifs_with_caption":
@@ -437,14 +437,14 @@ def pagination_worker(call):
                         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
                         bot.send_document(call.message.chat.id, data=x[2], caption=x[0],
                                           disable_notification=True, reply_markup=markup)
-                        bot.answer_callback_query(call.id, text="")
+                        bot.answer_callback_query(call.message.chat.id, text="")
                     except Exception as error:
                         logging.info("Error occurred during the vk memes pagination: %s" % error)
-                        bot.answer_callback_query(call.id, text="")
+                        bot.answer_callback_query(call.message.chat.id, text="")
         except (IndexError, TypeError):
             bot.send_message(chat_id=call.message.chat.id, text=texts(user).ALL_LASTEST_POSTS_DISPLAYED,
                              disable_notification=True, parse_mode="Markdown")
-            bot.answer_callback_query(call.id, text="")
+            bot.answer_callback_query(call.message.chat.id, text="")
             top_vk_groups(action="send_message", handler_type=call.message)
 
 
@@ -727,7 +727,7 @@ def top_site_menu(call):
     markup.row(types.InlineKeyboardButton(texts(user).BACK_TO_SITE_SELECTION, callback_data=call.data.split('_')[1]))
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                           text=texts(user).CHOOSE_SECTION % call.data.split('_')[0], reply_markup=markup)
-    bot.answer_callback_query(call.id, text="")
+    bot.answer_callback_query(call.message.chat.id, text="")
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     is_subscribe = DBGetter(DBSettings.HOST).get("SELECT count(*) FROM users_subscriptions "
                                                  "WHERE subscription = '%s' AND user_id = %s" %
@@ -741,12 +741,12 @@ def top_site_menu(call):
         bot.send_message(chat_id=call.message.chat.id,
                          text=texts(user).YOU_CAN_SUBSCRIBE_TO % call.data.split('_')[0],
                          reply_markup=keyboard)
-        bot.answer_callback_query(call.id, text="")
+        bot.answer_callback_query(call.message.chat.id, text="")
     if is_subscribe == 1:
         bot.send_message(chat_id=call.message.chat.id,
                          text=texts(user).YOU_CAN_UNSUBSCRIBE_FROM % call.data.split('_')[0],
                          reply_markup=keyboard)
-        bot.answer_callback_query(call.id, text="")
+        bot.answer_callback_query(call.message.chat.id, text="")
     # botan.track(APISettings.BOTAN_TOKEN, call.message.chat.id, None, call.data)
 
 
@@ -777,7 +777,7 @@ def get_news_by_top_resources(call):
         bot.send_message(chat_id=call.message.chat.id, text='%s\n<a href="%s">%s</a>' % (news[0], news[1],
                                                                                          texts(user).LEARN_MORE),
                          disable_notification=True, reply_markup=markup, parse_mode="HTML")
-        bot.answer_callback_query(call.id, text="")
+        bot.answer_callback_query(call.message.chat.id, text="")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in str(ResourcesSettings.VK_GROUPS_IDS.values()))
@@ -800,24 +800,24 @@ def get_memes_by_top_vk_groups(call):
         # отправляем просто картинки
         if x[1] == "photo_no_caption":
             bot.send_photo(call.message.chat.id, photo=x[2], disable_notification=True, reply_markup=markup)
-            bot.answer_callback_query(call.id, text="")
+            bot.answer_callback_query(call.message.chat.id, text="")
 
         # отправляем картинки с подписью
         if x[1] == "photo_with_caption":
             bot.send_photo(call.message.chat.id, photo=x[2], caption=x[0],
                            disable_notification=True, reply_markup=markup)
-            bot.answer_callback_query(call.id, text="")
+            bot.answer_callback_query(call.message.chat.id, text="")
 
         # отправляем просто гифки
         if x[1] == "gifs_no_caption":
             bot.send_document(call.message.chat.id, data=x[2], disable_notification=True, reply_markup=markup)
-            bot.answer_callback_query(call.id, text="")
+            bot.answer_callback_query(call.message.chat.id, text="")
 
         # отправляем гифки с подписью
         if x[1] == "gifs_with_caption":
             bot.send_document(call.message.chat.id, data=x[2], caption=x[0],
                               disable_notification=True, reply_markup=markup)
-            bot.answer_callback_query(call.id, text="")
+            bot.answer_callback_query(call.message.chat.id, text="")
     # botan.track(APISettings.BOTAN_TOKEN, call.message.chat.id, None, call.data)
 
 while True:
