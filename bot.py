@@ -70,9 +70,7 @@ def rate_command(message):
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == texts(message.chat.id).HELP)
 def help_menu(message):
     user = message.chat.id
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=texts(user).SUPPORT_TEAM, url=texts(user).SUPPORT_TEAM_LINK))
-    bot.send_message(message.chat.id, text=texts(user).LIST_OF_COMMANDS, reply_markup=markup, parse_mode="Markdown")
+    bot.send_message(message.chat.id, text=texts(user).LIST_OF_COMMANDS, parse_mode="Markdown")
     # botan.track(APISettings.BOTAN_TOKEN, message.chat.id, None, message.text)
 
 
