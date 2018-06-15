@@ -60,14 +60,16 @@ HERE_IS_LATEST_NEWS = u"\U0001F4EC Последние новости из лен
 ALL_FEEDS_UPDATED = u"\u2139 Все подписки обновлены \u2139"
 IF_YOUR_LIKE = u"Если вам действительно нравится этот бот, то будем рады любому " \
                u"пожертвованию которое уйдет на разработку, обслуживание и серверы. \n" \
-               u"*Bitcoin:* 1KYmMdEiXeUGzUuGiUQ6vQpWVrG1r6nuRM\n" \
+               u"*Bitcoin:* 13NiT7537npGcyrE6hVLag8wBB7Z8UGUM2\n" \
                u"*Etherium:* 0x996D53164F64C5c5C07D1AFD8C5b87f0fCd6e396"
 RATE_ME = u"Если вам нравится этот бот, то поставьте ему \u2b50\u2b50\u2b50\u2b50\u2b50 здесь:"
 ALREADY_SUPPORTED = u"\u2705 Я уже поддержал бота"
 GOT_IT = u"Принято! Вы лучший! \U0001F44D"
 REMINDER = u"Нравится бот? — Поставьте ему \u2b50\u2b50\u2b50\u2b50\u2b50 \n\n" \
            u"Также будем рады любому пожертвованию:\n" \
-           u"*Bitcoin:* 1KYmMdEiXeUGzUuGiUQ6vQpWVrG1r6nuRM\n" \
+           u"*WebMoney:* Z638231318037\n" \
+           u"*DonationAlerts:* http://www.donationalerts.ru/r/feedler\n" \
+           u"*Bitcoin:* 13NiT7537npGcyrE6hVLag8wBB7Z8UGUM2\n" \
            u"*Etherium:* 0x996D53164F64C5c5C07D1AFD8C5b87f0fCd6e396"
 SUPPORT_GROUP = u"\u2139 Вступайте в нашу группу поддержки. \nТам Вы можете задать интересующие Вас вопросы по " \
                 u"работе бота и узнать первыми о новых функциях. " \
@@ -83,7 +85,9 @@ LIST_OF_COMMANDS = "*Вместо главного меню, Вы можете �
                    "/feedback - Мы будем рады любому отзыву\n" \
                    "/language - Изменить язык\n\n" \
                    "Поддержать разработчиков:\n" \
-                   "*Bitcoin:* 1KYmMdEiXeUGzUuGiUQ6vQpWVrG1r6nuRM\n" \
+                   "*WebMoney:* Z638231318037\n" \
+                   "*DonationAlerts:* http://www.donationalerts.ru/r/feedler\n" \
+                   "*Bitcoin:* 13NiT7537npGcyrE6hVLag8wBB7Z8UGUM2\n" \
                    "*Etherium:* 0x996D53164F64C5c5C07D1AFD8C5b87f0fCd6e396"
 SUPPORT_TEAM_LINK = "https://t.me/joinchat/GO9Jew3ZH_-yj3yUyd5biA"
 SUPPORT_TEAM = u"\U0001F6E0 Служба поддержки"

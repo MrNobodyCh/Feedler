@@ -64,14 +64,16 @@ HERE_IS_LATEST_NEWS = u"\U0001F4EC Here is the latest news from feed %s:"
 ALL_FEEDS_UPDATED = u"\u2139 All feeds have been updated \u2139"
 IF_YOUR_LIKE = u"If you really enjoy this bot, consider a donation " \
                u"to support development, maintenance and servers costs. \n" \
-               u"*Bitcoin:* 1KYmMdEiXeUGzUuGiUQ6vQpWVrG1r6nuRM\n" \
+               u"*Bitcoin:* 13NiT7537npGcyrE6hVLag8wBB7Z8UGUM2\n" \
                u"*Etherium:* 0x996D53164F64C5c5C07D1AFD8C5b87f0fCd6e396"
 RATE_ME = u"If you like me, give me some \u2b50\u2b50\u2b50\u2b50\u2b50 here:"
 ALREADY_SUPPORTED = u"\u2705 I already supported the bot"
 GOT_IT = u"Got it! You are the best! \U0001F44D"
 REMINDER = u"Do you like our bot? — Give him some \u2b50\u2b50\u2b50\u2b50\u2b50 \n\n" \
            u"Also we will be glad to any donation: \n" \
-           u"*Bitcoin:* 1KYmMdEiXeUGzUuGiUQ6vQpWVrG1r6nuRM\n" \
+           u"*WebMoney:* Z638231318037\n" \
+           u"*DonationAlerts:* http://www.donationalerts.ru/r/feedler\n" \
+           u"*Bitcoin:* 13NiT7537npGcyrE6hVLag8wBB7Z8UGUM2\n" \
            u"*Etherium:* 0x996D53164F64C5c5C07D1AFD8C5b87f0fCd6e396"
 SUPPORT_GROUP = u"\u2139 Join our support team! \nBe the first to learn our new features " \
                 u"and feel free to ask any questions. " \
@@ -86,7 +88,9 @@ LIST_OF_COMMANDS = "*Instead of the main menu, you can use the following command
                    "/feedback - We're happy to hear any feedback from you\n" \
                    "/language - Change the language \n\n" \
                    "Donate to developers:\n" \
-                   "*Bitcoin:* 1KYmMdEiXeUGzUuGiUQ6vQpWVrG1r6nuRM\n" \
+                   "*WebMoney:* Z638231318037\n" \
+                   "*DonationAlerts:* http://www.donationalerts.ru/r/feedler\n" \
+                   "*Bitcoin:* 13NiT7537npGcyrE6hVLag8wBB7Z8UGUM2\n" \
                    "*Etherium:* 0x996D53164F64C5c5C07D1AFD8C5b87f0fCd6e396"
 SUPPORT_TEAM_LINK = "https://t.me/joinchat/GO9Jewvuaeq7cifPJdLrgA"
 SUPPORT_TEAM = u"\U0001F6E0 Support team"
